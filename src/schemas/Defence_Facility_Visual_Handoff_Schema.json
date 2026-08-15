@@ -1,0 +1,2179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://defence-facilities.local/schemas/visual-production-handoff-0.9.0.schema.json",
+  "title": "Secret Defence Facilities Visual Production Handoff 0.9.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "facility",
+    "historical_context",
+    "site_dimensions_and_spatial_relations",
+    "facility_modules",
+    "reference_assets",
+    "environments",
+    "construction_stages",
+    "stage_transitions",
+    "visual_story_plan",
+    "sensitivity_and_truth_policy",
+    "global_prompt_rules"
+  ],
+  "properties": {
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "contract_type",
+        "project_scope",
+        "template_status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "Secret Defence Facilities Visual Production Handoff"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "enum": [
+            "0.9.0"
+          ]
+        },
+        "contract_type": {
+          "type": "string",
+          "enum": [
+            "VISUAL_ONLY_ENGINE_TO_APP_HANDOFF"
+          ]
+        },
+        "project_scope": {
+          "type": "string",
+          "enum": [
+            "SECRET_UNUSUAL_DEFENCE_FACILITIES_CONSTRUCTION_DOCUMENTARY"
+          ]
+        },
+        "template_status": {
+          "type": "string",
+          "enum": [
+            "DRAFT_PENDING_CREATOR_PREFERENCES"
+          ]
+        }
+      }
+    },
+    "facility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "official_name",
+        "aliases",
+        "facility_class",
+        "country_or_operator",
+        "builder_or_engineering_organizations",
+        "construction_era",
+        "facility_status",
+        "public_location_name",
+        "location_precision_policy",
+        "overall_visual_description",
+        "immutable_identity_features",
+        "visually_similar_facilities_to_avoid",
+        "global_negative_constraints"
+      ],
+      "properties": {
+        "official_name": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "facility_class": {
+          "type": "string"
+        },
+        "country_or_operator": {
+          "type": "string"
+        },
+        "builder_or_engineering_organizations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "construction_era": {
+          "type": "string"
+        },
+        "facility_status": {
+          "type": "string",
+          "enum": [
+            "HISTORICAL",
+            "DECLASSIFIED",
+            "ABANDONED",
+            "PRESERVED_OR_MUSEUM",
+            "ACTIVE_PUBLICLY_DOCUMENTED",
+            "PROPOSED_OR_UNBUILT",
+            "UNKNOWN"
+          ]
+        },
+        "public_location_name": {
+          "type": "string"
+        },
+        "location_precision_policy": {
+          "type": "string",
+          "enum": [
+            "PUBLIC_SITE_NAME_ONLY"
+          ]
+        },
+        "overall_visual_description": {
+          "type": "string"
+        },
+        "immutable_identity_features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "visually_similar_facilities_to_avoid": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "global_negative_constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "historical_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "construction_period_start",
+        "construction_period_end",
+        "geopolitical_context",
+        "strategic_problem",
+        "intended_role",
+        "actual_role_if_different",
+        "current_status",
+        "key_publicly_documented_events",
+        "uncertainty_notes"
+      ],
+      "properties": {
+        "construction_period_start": {
+          "type": "string"
+        },
+        "construction_period_end": {
+          "type": "string"
+        },
+        "geopolitical_context": {
+          "type": "string"
+        },
+        "strategic_problem": {
+          "type": "string"
+        },
+        "intended_role": {
+          "type": "string"
+        },
+        "actual_role_if_different": {
+          "type": "string"
+        },
+        "current_status": {
+          "type": "string"
+        },
+        "key_publicly_documented_events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uncertainty_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "site_dimensions_and_spatial_relations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall_site_extent",
+        "maximum_documented_depth_or_overburden",
+        "documented_tunnel_or_internal_length",
+        "documented_major_chamber_dimensions",
+        "important_spatial_relationships",
+        "terrain_relationships",
+        "human_scale_reference",
+        "layout_claim_status"
+      ],
+      "properties": {
+        "overall_site_extent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "unit",
+            "confidence"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "CONFIRMED",
+                "CORROBORATED",
+                "CREATOR_PROVIDED",
+                "ANALYST_INFERRED",
+                "UNKNOWN"
+              ]
+            }
+          }
+        },
+        "maximum_documented_depth_or_overburden": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "unit",
+            "confidence"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "CONFIRMED",
+                "CORROBORATED",
+                "CREATOR_PROVIDED",
+                "ANALYST_INFERRED",
+                "UNKNOWN"
+              ]
+            }
+          }
+        },
+        "documented_tunnel_or_internal_length": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "unit",
+            "confidence"
+          ],
+          "properties": {
+            "value": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "CONFIRMED",
+                "CORROBORATED",
+                "CREATOR_PROVIDED",
+                "ANALYST_INFERRED",
+                "UNKNOWN"
+              ]
+            }
+          }
+        },
+        "documented_major_chamber_dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "important_spatial_relationships": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "terrain_relationships": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_scale_reference": {
+          "type": "string"
+        },
+        "layout_claim_status": {
+          "type": "string",
+          "enum": [
+            "EXACT_LAYOUT_VERIFIED",
+            "PARTIAL_LAYOUT_VERIFIED",
+            "CONCEPTUAL_RELATIONSHIP_ONLY",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "facility_modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "module_id",
+          "module_name",
+          "module_type",
+          "verified_function",
+          "location_relation",
+          "required_visible_features",
+          "spatial_relationships",
+          "minimum_visible_anchor_count",
+          "forbidden_layout_claims",
+          "likely_wrong_substitutions"
+        ],
+        "properties": {
+          "module_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9_\\-]+$"
+          },
+          "module_name": {
+            "type": "string"
+          },
+          "module_type": {
+            "type": "string"
+          },
+          "verified_function": {
+            "type": "string"
+          },
+          "location_relation": {
+            "type": "string"
+          },
+          "required_visible_features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "spatial_relationships": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "minimum_visible_anchor_count": {
+            "type": "integer"
+          },
+          "forbidden_layout_claims": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "likely_wrong_substitutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "reference_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset_id",
+          "asset_type",
+          "facility_or_module",
+          "construction_or_operational_state",
+          "view_angle_or_document_scope",
+          "source_page_url",
+          "direct_media_url_or_file_reference",
+          "publisher_or_owner",
+          "date_or_event",
+          "visual_verification",
+          "facility_claim_status",
+          "layout_claim_status",
+          "exact_site_verified",
+          "visible_or_documented_features",
+          "allowed_usage",
+          "forbidden_usage",
+          "recommended_media_routes",
+          "confidence"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9_\\-]+$"
+          },
+          "asset_type": {
+            "type": "string"
+          },
+          "facility_or_module": {
+            "type": "string"
+          },
+          "construction_or_operational_state": {
+            "type": "string"
+          },
+          "view_angle_or_document_scope": {
+            "type": "string"
+          },
+          "source_page_url": {
+            "type": "string"
+          },
+          "direct_media_url_or_file_reference": {
+            "type": "string"
+          },
+          "publisher_or_owner": {
+            "type": "string"
+          },
+          "date_or_event": {
+            "type": "string"
+          },
+          "visual_verification": {
+            "type": "string"
+          },
+          "facility_claim_status": {
+            "type": "string",
+            "enum": [
+              "EXACT_SITE_VERIFIED",
+              "FACILITY_TYPE_CORROBORATED",
+              "CONTEXTUAL_DEFENCE_INFRASTRUCTURE",
+              "GENERIC_NON_IDENTIFYING_VISUAL",
+              "UNUSABLE"
+            ]
+          },
+          "layout_claim_status": {
+            "type": "string",
+            "enum": [
+              "EXACT_LAYOUT_VERIFIED",
+              "PARTIAL_LAYOUT_VERIFIED",
+              "CONCEPTUAL_RELATIONSHIP_ONLY",
+              "UNKNOWN"
+            ]
+          },
+          "exact_site_verified": {
+            "type": "boolean"
+          },
+          "visible_or_documented_features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_usage": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "forbidden_usage": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommended_media_routes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "GENERATED_T2V",
+                "REFERENCE_IMAGE_I2V",
+                "AUTHENTIC_VIDEO",
+                "ARCHIVAL_IMAGE",
+                "ARCHIVAL_VIDEO",
+                "SATELLITE_REFERENCE",
+                "EDITOR_NATIVE_GRAPHIC",
+                "REFERENCE_LOCKED_GRAPHIC",
+                "STATIC_IMAGE_WITH_MOTION",
+                "NO_VALID_ROUTE"
+              ]
+            }
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "CORROBORATED",
+              "CREATOR_PROVIDED",
+              "ANALYST_INFERRED",
+              "UNVERIFIED",
+              "UNKNOWN"
+            ]
+          }
+        }
+      }
+    },
+    "environments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "environment_id",
+          "environment_name",
+          "setting_scope",
+          "environment_type",
+          "facility_claim_status",
+          "exact_facility_name_if_verified",
+          "geographic_context",
+          "terrain",
+          "ground_or_surface_condition",
+          "weather_or_climate",
+          "lighting",
+          "visible_exterior_features",
+          "construction_features",
+          "machinery",
+          "temporary_works",
+          "tools",
+          "worker_roles",
+          "worker_uniforms_and_ppe",
+          "scale_references",
+          "allowed_background_activity",
+          "forbidden_elements"
+        ],
+        "properties": {
+          "environment_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9_\\-]+$"
+          },
+          "environment_name": {
+            "type": "string"
+          },
+          "setting_scope": {
+            "type": "string"
+          },
+          "environment_type": {
+            "type": "string"
+          },
+          "facility_claim_status": {
+            "type": "string",
+            "enum": [
+              "EXACT_SITE_VERIFIED",
+              "FACILITY_TYPE_CORROBORATED",
+              "CONTEXTUAL_DEFENCE_INFRASTRUCTURE",
+              "GENERIC_NON_IDENTIFYING_VISUAL",
+              "UNUSABLE"
+            ]
+          },
+          "exact_facility_name_if_verified": {
+            "type": "string"
+          },
+          "geographic_context": {
+            "type": "string"
+          },
+          "terrain": {
+            "type": "string"
+          },
+          "ground_or_surface_condition": {
+            "type": "string"
+          },
+          "weather_or_climate": {
+            "type": "string"
+          },
+          "lighting": {
+            "type": "string"
+          },
+          "visible_exterior_features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "construction_features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "machinery": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "temporary_works": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "worker_roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "worker_uniforms_and_ppe": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scale_references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_background_activity": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "forbidden_elements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "construction_stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stage_id",
+          "stage_number",
+          "stage_name",
+          "construction_function",
+          "facility_state_code",
+          "stage_visual_summary",
+          "environment_ids",
+          "site_state",
+          "present_now",
+          "not_yet_built_or_installed",
+          "temporarily_exposed",
+          "open_interfaces",
+          "temporary_works_present",
+          "removed_material_or_spoil_state",
+          "geometry_control",
+          "stage_actions",
+          "camera_guidance",
+          "stage_visual_opportunities",
+          "visual_evidence",
+          "continuity",
+          "prompt_constraints"
+        ],
+        "properties": {
+          "stage_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9_\\-]+$"
+          },
+          "stage_number": {
+            "type": "integer"
+          },
+          "stage_name": {
+            "type": "string"
+          },
+          "construction_function": {
+            "type": "string"
+          },
+          "facility_state_code": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C"
+            ]
+          },
+          "stage_visual_summary": {
+            "type": "string"
+          },
+          "environment_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Z0-9_\\-]+$"
+            }
+          },
+          "site_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "overall_form",
+              "surface_state",
+              "subsurface_state",
+              "recognizable_as_final_facility",
+              "access_state",
+              "temporary_works_state",
+              "permanent_works_state",
+              "interior_visibility"
+            ],
+            "properties": {
+              "overall_form": {
+                "type": "string"
+              },
+              "surface_state": {
+                "type": "string"
+              },
+              "subsurface_state": {
+                "type": "string"
+              },
+              "recognizable_as_final_facility": {
+                "type": "boolean"
+              },
+              "access_state": {
+                "type": "string"
+              },
+              "temporary_works_state": {
+                "type": "string"
+              },
+              "permanent_works_state": {
+                "type": "string"
+              },
+              "interior_visibility": {
+                "type": "string"
+              }
+            }
+          },
+          "present_now": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "not_yet_built_or_installed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "temporarily_exposed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "open_interfaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "temporary_works_present": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "removed_material_or_spoil_state": {
+            "type": "string"
+          },
+          "geometry_control": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "primary_facility_module_id",
+              "secondary_facility_module_ids",
+              "required_visible_anchors",
+              "minimum_visible_anchor_count",
+              "corrective_positive_geometry",
+              "likely_wrong_substitutions",
+              "negative_constraints",
+              "immutable_during_clip",
+              "forbidden_transformations"
+            ],
+            "properties": {
+              "primary_facility_module_id": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Z0-9_\\-]+$"
+              },
+              "secondary_facility_module_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[A-Z0-9_\\-]+$"
+                }
+              },
+              "required_visible_anchors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "minimum_visible_anchor_count": {
+                "type": "integer"
+              },
+              "corrective_positive_geometry": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "likely_wrong_substitutions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "negative_constraints": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "immutable_during_clip": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "forbidden_transformations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "stage_actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "action_id",
+                "action_description",
+                "primary_subject",
+                "primary_action",
+                "allowed_minor_motion",
+                "required_tools_or_machinery",
+                "required_worker_roles",
+                "forbidden_actions"
+              ],
+              "properties": {
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[A-Z0-9_\\-]+$"
+                },
+                "action_description": {
+                  "type": "string"
+                },
+                "primary_subject": {
+                  "type": "string"
+                },
+                "primary_action": {
+                  "type": "string"
+                },
+                "allowed_minor_motion": {
+                  "type": "string"
+                },
+                "required_tools_or_machinery": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "required_worker_roles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "forbidden_actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "camera_guidance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "preferred_views",
+              "safe_shot_scales",
+              "preferred_camera_movements",
+              "forbidden_camera_movements",
+              "high_risk_views"
+            ],
+            "properties": {
+              "preferred_views": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "safe_shot_scales": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "preferred_camera_movements": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "forbidden_camera_movements": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "high_risk_views": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "stage_visual_opportunities": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "recommended_visual_families",
+              "terrain_and_scale_opportunities",
+              "access_and_logistics_opportunities",
+              "excavation_or_tunneling_opportunities",
+              "machinery_action_opportunities",
+              "worker_activity_opportunities",
+              "material_flow_opportunities",
+              "quality_control_opportunities",
+              "archival_or_reference_opportunities",
+              "technical_graphic_opportunities",
+              "non_facility_cutaway_opportunities"
+            ],
+            "properties": {
+              "recommended_visual_families": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "SITE_AERIAL",
+                    "TERRAIN_CONTEXT",
+                    "FACILITY_EXTERIOR",
+                    "ACCESS_AND_LOGISTICS",
+                    "CONSTRUCTION_CAMP",
+                    "SURVEY_AND_PREPARATION",
+                    "EXCAVATION_AND_BLASTING",
+                    "TUNNELING",
+                    "ROCK_REMOVAL",
+                    "TEMPORARY_WORKS",
+                    "CONCRETE_AND_LINING",
+                    "STRUCTURAL_FIT_OUT",
+                    "INTERNAL_SYSTEMS",
+                    "WORKER_POV",
+                    "MACHINERY_ACTION",
+                    "MATERIAL_FLOW",
+                    "QUALITY_CONTROL",
+                    "ENVIRONMENTAL_CHALLENGE",
+                    "ARCHIVAL_REFERENCE",
+                    "MAP_OR_TIMELINE",
+                    "TECHNICAL_GRAPHIC",
+                    "CUTAWAY_RECONSTRUCTION",
+                    "OPERATIONAL_CONTEXT",
+                    "ABANDONMENT_OR_REMAINS",
+                    "HERO_FACILITY",
+                    "CHAPTER_TRANSITION",
+                    "ATMOSPHERIC_INTERSTITIAL"
+                  ]
+                }
+              },
+              "terrain_and_scale_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "access_and_logistics_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "excavation_or_tunneling_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "machinery_action_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "worker_activity_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "material_flow_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "quality_control_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "archival_or_reference_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "technical_graphic_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "non_facility_cutaway_opportunities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "visual_evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "confirmed_visual_details",
+              "analyst_inferred_visual_details",
+              "uncertain_visual_details",
+              "excluded_visual_claims",
+              "reference_asset_ids"
+            ],
+            "properties": {
+              "confirmed_visual_details": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "analyst_inferred_visual_details": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "uncertain_visual_details": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "excluded_visual_claims": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reference_asset_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[A-Z0-9_\\-]+$"
+                }
+              }
+            }
+          },
+          "continuity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "previous_stage_end_state",
+              "current_stage_start_state",
+              "current_stage_end_state",
+              "next_stage_expected_state",
+              "features_that_must_remain_consistent",
+              "temporary_features_that_may_disappear",
+              "forbidden_regressions"
+            ],
+            "properties": {
+              "previous_stage_end_state": {
+                "type": "string"
+              },
+              "current_stage_start_state": {
+                "type": "string"
+              },
+              "current_stage_end_state": {
+                "type": "string"
+              },
+              "next_stage_expected_state": {
+                "type": "string"
+              },
+              "features_that_must_remain_consistent": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "temporary_features_that_may_disappear": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "forbidden_regressions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "prompt_constraints": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "one_stable_facility_state",
+              "one_primary_action",
+              "no_permanent_feature_appears_before_construction",
+              "no_automatic_completion_of_facility",
+              "no_geometry_morphing",
+              "no_readable_generated_text",
+              "no_invented_exact_layout",
+              "must_repeat_present_and_absent_features",
+              "must_include_view_specific_geometry"
+            ],
+            "properties": {
+              "one_stable_facility_state": {
+                "type": "boolean"
+              },
+              "one_primary_action": {
+                "type": "boolean"
+              },
+              "no_permanent_feature_appears_before_construction": {
+                "type": "boolean"
+              },
+              "no_automatic_completion_of_facility": {
+                "type": "boolean"
+              },
+              "no_geometry_morphing": {
+                "type": "boolean"
+              },
+              "no_readable_generated_text": {
+                "type": "boolean"
+              },
+              "no_invented_exact_layout": {
+                "type": "boolean"
+              },
+              "must_repeat_present_and_absent_features": {
+                "type": "boolean"
+              },
+              "must_include_view_specific_geometry": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "stage_transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from_stage_id",
+          "to_stage_id"
+        ],
+        "properties": {
+          "from_stage_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9_\\-]+$"
+          },
+          "to_stage_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9_\\-]+$"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "visual_story_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentary_arc",
+        "chapters",
+        "rhythm_policy",
+        "media_routing_policy",
+        "visual_balance_targets"
+      ],
+      "properties": {
+        "documentary_arc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "central_construction_question",
+            "central_mystery_question",
+            "strategic_context_question",
+            "opening_visual_promise",
+            "promised_engineering_payoffs",
+            "purpose_reveal",
+            "closing_visual_payoff",
+            "facility_fate_or_present_day_payoff"
+          ],
+          "properties": {
+            "central_construction_question": {
+              "type": "string"
+            },
+            "central_mystery_question": {
+              "type": "string"
+            },
+            "strategic_context_question": {
+              "type": "string"
+            },
+            "opening_visual_promise": {
+              "type": "string"
+            },
+            "promised_engineering_payoffs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "purpose_reveal": {
+              "type": "string"
+            },
+            "closing_visual_payoff": {
+              "type": "string"
+            },
+            "facility_fate_or_present_day_payoff": {
+              "type": "string"
+            }
+          }
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "chapter_id",
+              "chapter_name",
+              "chapter_order",
+              "narrative_goal",
+              "chapter_question",
+              "chapter_payoff",
+              "opening_rehook_intent",
+              "applicable_construction_stage_ids",
+              "required_visual_families",
+              "optional_visual_families",
+              "forbidden_visual_families",
+              "visual_beats"
+            ],
+            "properties": {
+              "chapter_id": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Z0-9_\\-]+$"
+              },
+              "chapter_name": {
+                "type": "string"
+              },
+              "chapter_order": {
+                "type": "integer"
+              },
+              "narrative_goal": {
+                "type": "string"
+              },
+              "chapter_question": {
+                "type": "string"
+              },
+              "chapter_payoff": {
+                "type": "string"
+              },
+              "opening_rehook_intent": {
+                "type": "string"
+              },
+              "applicable_construction_stage_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[A-Z0-9_\\-]+$"
+                }
+              },
+              "required_visual_families": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "SITE_AERIAL",
+                    "TERRAIN_CONTEXT",
+                    "FACILITY_EXTERIOR",
+                    "ACCESS_AND_LOGISTICS",
+                    "CONSTRUCTION_CAMP",
+                    "SURVEY_AND_PREPARATION",
+                    "EXCAVATION_AND_BLASTING",
+                    "TUNNELING",
+                    "ROCK_REMOVAL",
+                    "TEMPORARY_WORKS",
+                    "CONCRETE_AND_LINING",
+                    "STRUCTURAL_FIT_OUT",
+                    "INTERNAL_SYSTEMS",
+                    "WORKER_POV",
+                    "MACHINERY_ACTION",
+                    "MATERIAL_FLOW",
+                    "QUALITY_CONTROL",
+                    "ENVIRONMENTAL_CHALLENGE",
+                    "ARCHIVAL_REFERENCE",
+                    "MAP_OR_TIMELINE",
+                    "TECHNICAL_GRAPHIC",
+                    "CUTAWAY_RECONSTRUCTION",
+                    "OPERATIONAL_CONTEXT",
+                    "ABANDONMENT_OR_REMAINS",
+                    "HERO_FACILITY",
+                    "CHAPTER_TRANSITION",
+                    "ATMOSPHERIC_INTERSTITIAL"
+                  ]
+                }
+              },
+              "optional_visual_families": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "SITE_AERIAL",
+                    "TERRAIN_CONTEXT",
+                    "FACILITY_EXTERIOR",
+                    "ACCESS_AND_LOGISTICS",
+                    "CONSTRUCTION_CAMP",
+                    "SURVEY_AND_PREPARATION",
+                    "EXCAVATION_AND_BLASTING",
+                    "TUNNELING",
+                    "ROCK_REMOVAL",
+                    "TEMPORARY_WORKS",
+                    "CONCRETE_AND_LINING",
+                    "STRUCTURAL_FIT_OUT",
+                    "INTERNAL_SYSTEMS",
+                    "WORKER_POV",
+                    "MACHINERY_ACTION",
+                    "MATERIAL_FLOW",
+                    "QUALITY_CONTROL",
+                    "ENVIRONMENTAL_CHALLENGE",
+                    "ARCHIVAL_REFERENCE",
+                    "MAP_OR_TIMELINE",
+                    "TECHNICAL_GRAPHIC",
+                    "CUTAWAY_RECONSTRUCTION",
+                    "OPERATIONAL_CONTEXT",
+                    "ABANDONMENT_OR_REMAINS",
+                    "HERO_FACILITY",
+                    "CHAPTER_TRANSITION",
+                    "ATMOSPHERIC_INTERSTITIAL"
+                  ]
+                }
+              },
+              "forbidden_visual_families": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "SITE_AERIAL",
+                    "TERRAIN_CONTEXT",
+                    "FACILITY_EXTERIOR",
+                    "ACCESS_AND_LOGISTICS",
+                    "CONSTRUCTION_CAMP",
+                    "SURVEY_AND_PREPARATION",
+                    "EXCAVATION_AND_BLASTING",
+                    "TUNNELING",
+                    "ROCK_REMOVAL",
+                    "TEMPORARY_WORKS",
+                    "CONCRETE_AND_LINING",
+                    "STRUCTURAL_FIT_OUT",
+                    "INTERNAL_SYSTEMS",
+                    "WORKER_POV",
+                    "MACHINERY_ACTION",
+                    "MATERIAL_FLOW",
+                    "QUALITY_CONTROL",
+                    "ENVIRONMENTAL_CHALLENGE",
+                    "ARCHIVAL_REFERENCE",
+                    "MAP_OR_TIMELINE",
+                    "TECHNICAL_GRAPHIC",
+                    "CUTAWAY_RECONSTRUCTION",
+                    "OPERATIONAL_CONTEXT",
+                    "ABANDONMENT_OR_REMAINS",
+                    "HERO_FACILITY",
+                    "CHAPTER_TRANSITION",
+                    "ATMOSPHERIC_INTERSTITIAL"
+                  ]
+                }
+              },
+              "visual_beats": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "beat_id",
+                    "beat_order",
+                    "beat_name",
+                    "story_function",
+                    "visual_family",
+                    "narrative_purpose",
+                    "semantic_alignment_terms",
+                    "applicable_stage_ids",
+                    "environment_ids",
+                    "facility_visibility",
+                    "required_facility_state_code",
+                    "facility_claim_status",
+                    "layout_claim_status",
+                    "reference_asset_ids",
+                    "preferred_media_routes",
+                    "generation_permission",
+                    "exact_site_claim_allowed",
+                    "exact_layout_claim_allowed",
+                    "preferred_shot_scales",
+                    "preferred_camera_movements",
+                    "minimum_usable_duration_seconds",
+                    "preferred_duration_seconds",
+                    "maximum_duration_seconds",
+                    "must_show",
+                    "must_not_show",
+                    "continuity_requirements",
+                    "negative_constraints"
+                  ],
+                  "properties": {
+                    "beat_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[A-Z0-9_\\-]+$"
+                    },
+                    "beat_order": {
+                      "type": "integer"
+                    },
+                    "beat_name": {
+                      "type": "string"
+                    },
+                    "story_function": {
+                      "type": "string",
+                      "enum": [
+                        "OPENING_HOOK",
+                        "ESTABLISH_MYSTERY",
+                        "ESTABLISH_LOCATION",
+                        "ESTABLISH_SCALE",
+                        "EXPLAIN_STRATEGIC_NEED",
+                        "INTRODUCE_CONSTRUCTION_PROBLEM",
+                        "EXPLAIN_PROCESS",
+                        "SHOW_HUMAN_SCALE",
+                        "SHOW_LOGISTICS",
+                        "EXPLAIN_HIDDEN_SYSTEM",
+                        "EXPLAIN_SPATIAL_RELATIONSHIP",
+                        "BRIDGE_STAGE",
+                        "RESET_ATTENTION",
+                        "PREVIEW_PAYOFF",
+                        "REVEAL_PURPOSE",
+                        "DELIVER_ENGINEERING_PAYOFF",
+                        "PROVIDE_HISTORICAL_CONTEXT",
+                        "SHOW_FAILURE_OR_LIMIT",
+                        "CONCLUDE_CHAPTER",
+                        "RESOLVE_FATE"
+                      ]
+                    },
+                    "visual_family": {
+                      "type": "string",
+                      "enum": [
+                        "SITE_AERIAL",
+                        "TERRAIN_CONTEXT",
+                        "FACILITY_EXTERIOR",
+                        "ACCESS_AND_LOGISTICS",
+                        "CONSTRUCTION_CAMP",
+                        "SURVEY_AND_PREPARATION",
+                        "EXCAVATION_AND_BLASTING",
+                        "TUNNELING",
+                        "ROCK_REMOVAL",
+                        "TEMPORARY_WORKS",
+                        "CONCRETE_AND_LINING",
+                        "STRUCTURAL_FIT_OUT",
+                        "INTERNAL_SYSTEMS",
+                        "WORKER_POV",
+                        "MACHINERY_ACTION",
+                        "MATERIAL_FLOW",
+                        "QUALITY_CONTROL",
+                        "ENVIRONMENTAL_CHALLENGE",
+                        "ARCHIVAL_REFERENCE",
+                        "MAP_OR_TIMELINE",
+                        "TECHNICAL_GRAPHIC",
+                        "CUTAWAY_RECONSTRUCTION",
+                        "OPERATIONAL_CONTEXT",
+                        "ABANDONMENT_OR_REMAINS",
+                        "HERO_FACILITY",
+                        "CHAPTER_TRANSITION",
+                        "ATMOSPHERIC_INTERSTITIAL"
+                      ]
+                    },
+                    "narrative_purpose": {
+                      "type": "string"
+                    },
+                    "semantic_alignment_terms": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "applicable_stage_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[A-Z0-9_\\-]+$"
+                      }
+                    },
+                    "environment_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[A-Z0-9_\\-]+$"
+                      }
+                    },
+                    "facility_visibility": {
+                      "type": "string",
+                      "enum": [
+                        "NONE",
+                        "PARTIAL",
+                        "FULL",
+                        "DETAIL_ONLY"
+                      ]
+                    },
+                    "required_facility_state_code": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "A",
+                        "B",
+                        "C",
+                        null
+                      ]
+                    },
+                    "facility_claim_status": {
+                      "type": "string",
+                      "enum": [
+                        "EXACT_SITE_VERIFIED",
+                        "FACILITY_TYPE_CORROBORATED",
+                        "CONTEXTUAL_DEFENCE_INFRASTRUCTURE",
+                        "GENERIC_NON_IDENTIFYING_VISUAL",
+                        "UNUSABLE"
+                      ]
+                    },
+                    "layout_claim_status": {
+                      "type": "string",
+                      "enum": [
+                        "EXACT_LAYOUT_VERIFIED",
+                        "PARTIAL_LAYOUT_VERIFIED",
+                        "CONCEPTUAL_RELATIONSHIP_ONLY",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "reference_asset_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[A-Z0-9_\\-]+$"
+                      }
+                    },
+                    "preferred_media_routes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "GENERATED_T2V",
+                          "REFERENCE_IMAGE_I2V",
+                          "AUTHENTIC_VIDEO",
+                          "ARCHIVAL_IMAGE",
+                          "ARCHIVAL_VIDEO",
+                          "SATELLITE_REFERENCE",
+                          "EDITOR_NATIVE_GRAPHIC",
+                          "REFERENCE_LOCKED_GRAPHIC",
+                          "STATIC_IMAGE_WITH_MOTION",
+                          "NO_VALID_ROUTE"
+                        ]
+                      }
+                    },
+                    "generation_permission": {
+                      "type": "string",
+                      "enum": [
+                        "T2V_ALLOWED",
+                        "REFERENCE_REQUIRED",
+                        "EDITOR_ONLY",
+                        "NOT_ALLOWED"
+                      ]
+                    },
+                    "exact_site_claim_allowed": {
+                      "type": "boolean"
+                    },
+                    "exact_layout_claim_allowed": {
+                      "type": "boolean"
+                    },
+                    "preferred_shot_scales": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "preferred_camera_movements": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "minimum_usable_duration_seconds": {
+                      "type": "integer"
+                    },
+                    "preferred_duration_seconds": {
+                      "type": "integer"
+                    },
+                    "maximum_duration_seconds": {
+                      "type": "integer"
+                    },
+                    "must_show": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "must_not_show": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "continuity_requirements": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "negative_constraints": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "rhythm_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "preferred_usable_scene_duration_seconds",
+            "maximum_consecutive_same_visual_family",
+            "maximum_consecutive_full_facility_scenes",
+            "maximum_consecutive_same_environment_without_new_information",
+            "require_context_process_detail_cycle_when_supported",
+            "attention_reset_interval_seconds",
+            "minimum_meaningful_visual_families_per_60_seconds",
+            "avoid_repeated_camera_angle",
+            "avoid_repeated_camera_movement",
+            "avoid_decorative_visuals_without_narrative_purpose"
+          ],
+          "properties": {
+            "preferred_usable_scene_duration_seconds": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "preferred",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "preferred": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "maximum_consecutive_same_visual_family": {
+              "type": "integer"
+            },
+            "maximum_consecutive_full_facility_scenes": {
+              "type": "integer"
+            },
+            "maximum_consecutive_same_environment_without_new_information": {
+              "type": "integer"
+            },
+            "require_context_process_detail_cycle_when_supported": {
+              "type": "boolean"
+            },
+            "attention_reset_interval_seconds": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "minimum_meaningful_visual_families_per_60_seconds": {
+              "type": "integer"
+            },
+            "avoid_repeated_camera_angle": {
+              "type": "boolean"
+            },
+            "avoid_repeated_camera_movement": {
+              "type": "boolean"
+            },
+            "avoid_decorative_visuals_without_narrative_purpose": {
+              "type": "boolean"
+            }
+          }
+        },
+        "media_routing_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "exact_historical_events_prefer_authentic_media",
+            "exact_facility_geometry_prefers_reference_media",
+            "exact_internal_layout_requires_verified_reference",
+            "exact_markings_require_reference_lock",
+            "maps_timelines_dimensions_and_diagrams_require_editor_graphics",
+            "generated_t2v_allowed_for_contextual_non_identifying_visuals",
+            "conceptual_cutaway_allowed_only_when_not_presented_as_exact",
+            "no_valid_route_must_be_flagged"
+          ],
+          "properties": {
+            "exact_historical_events_prefer_authentic_media": {
+              "type": "boolean"
+            },
+            "exact_facility_geometry_prefers_reference_media": {
+              "type": "boolean"
+            },
+            "exact_internal_layout_requires_verified_reference": {
+              "type": "boolean"
+            },
+            "exact_markings_require_reference_lock": {
+              "type": "boolean"
+            },
+            "maps_timelines_dimensions_and_diagrams_require_editor_graphics": {
+              "type": "boolean"
+            },
+            "generated_t2v_allowed_for_contextual_non_identifying_visuals": {
+              "type": "boolean"
+            },
+            "conceptual_cutaway_allowed_only_when_not_presented_as_exact": {
+              "type": "boolean"
+            },
+            "no_valid_route_must_be_flagged": {
+              "type": "boolean"
+            }
+          }
+        },
+        "visual_balance_targets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "construction_and_engineering_percent",
+            "terrain_scale_access_and_logistics_percent",
+            "archival_history_and_reference_media_percent",
+            "technical_graphics_maps_and_cutaways_percent",
+            "operational_context_abandonment_and_fate_percent",
+            "hero_facility_imagery_percent",
+            "targets_are_advisory_not_hard_quotas"
+          ],
+          "properties": {
+            "construction_and_engineering_percent": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "terrain_scale_access_and_logistics_percent": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "archival_history_and_reference_media_percent": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "technical_graphics_maps_and_cutaways_percent": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "operational_context_abandonment_and_fate_percent": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "hero_facility_imagery_percent": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "minimum": {
+                  "type": "integer"
+                },
+                "maximum": {
+                  "type": "integer"
+                }
+              }
+            },
+            "targets_are_advisory_not_hard_quotas": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "sensitivity_and_truth_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "facility_claim_status_values",
+        "layout_claim_status_values",
+        "facility_status_values",
+        "exact_site_claim_requires_verified_reference",
+        "exact_layout_claim_requires_declassified_or_official_reference",
+        "conceptual_reconstruction_must_not_imply_exact_layout",
+        "active_facility_access_routes_forbidden",
+        "active_security_procedures_forbidden",
+        "current_guard_patterns_forbidden",
+        "vulnerability_analysis_forbidden",
+        "security_blind_spots_forbidden",
+        "weapons_employment_instructions_forbidden",
+        "historical_public_construction_detail_allowed",
+        "generated_facility_signage_forbidden",
+        "generated_readable_markings_forbidden",
+        "invented_facility_names_forbidden"
+      ],
+      "properties": {
+        "facility_claim_status_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "layout_claim_status_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "facility_status_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exact_site_claim_requires_verified_reference": {
+          "type": "boolean"
+        },
+        "exact_layout_claim_requires_declassified_or_official_reference": {
+          "type": "boolean"
+        },
+        "conceptual_reconstruction_must_not_imply_exact_layout": {
+          "type": "boolean"
+        },
+        "active_facility_access_routes_forbidden": {
+          "type": "boolean"
+        },
+        "active_security_procedures_forbidden": {
+          "type": "boolean"
+        },
+        "current_guard_patterns_forbidden": {
+          "type": "boolean"
+        },
+        "vulnerability_analysis_forbidden": {
+          "type": "boolean"
+        },
+        "security_blind_spots_forbidden": {
+          "type": "boolean"
+        },
+        "weapons_employment_instructions_forbidden": {
+          "type": "boolean"
+        },
+        "historical_public_construction_detail_allowed": {
+          "type": "boolean"
+        },
+        "generated_facility_signage_forbidden": {
+          "type": "boolean"
+        },
+        "generated_readable_markings_forbidden": {
+          "type": "boolean"
+        },
+        "invented_facility_names_forbidden": {
+          "type": "boolean"
+        }
+      }
+    },
+    "global_prompt_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visual_family_values",
+        "story_function_values",
+        "facility_visibility_values",
+        "generation_permission_values",
+        "media_route_values",
+        "evidence_confidence_values",
+        "facility_state_code_values",
+        "use_positive_geometry_before_negative_constraints",
+        "use_smallest_relevant_facility_module",
+        "treat_each_generated_clip_as_stateless",
+        "one_stable_state_per_clip",
+        "one_primary_action_per_clip",
+        "maximum_minor_supporting_actions",
+        "maximum_camera_movements",
+        "generated_readable_text_forbidden",
+        "geometry_transformation_forbidden",
+        "generic_facility_fallback_cannot_be_presented_as_exact",
+        "reference_asset_required_when_text_is_insufficient",
+        "exact_layout_requires_verified_reference",
+        "conceptual_cutaways_must_be_visually_generic_and_not_to_scale_when_layout_unknown",
+        "active_security_detail_generation_forbidden",
+        "final_prompt_generation_belongs_to_app",
+        "transcript_alignment_belongs_to_app",
+        "scene_plan_must_precede_prompt_generation",
+        "visual_beat_must_have_narrative_purpose",
+        "editor_native_graphics_required_for_readable_maps_timelines_and_diagrams",
+        "historical_event_reconstruction_must_not_be_claimed_as_authentic_footage"
+      ],
+      "properties": {
+        "visual_family_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "story_function_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "facility_visibility_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generation_permission_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "media_route_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_confidence_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "facility_state_code_values": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "A",
+            "B",
+            "C"
+          ],
+          "properties": {
+            "A": {
+              "type": "string"
+            },
+            "B": {
+              "type": "string"
+            },
+            "C": {
+              "type": "string"
+            }
+          }
+        },
+        "use_positive_geometry_before_negative_constraints": {
+          "type": "boolean"
+        },
+        "use_smallest_relevant_facility_module": {
+          "type": "boolean"
+        },
+        "treat_each_generated_clip_as_stateless": {
+          "type": "boolean"
+        },
+        "one_stable_state_per_clip": {
+          "type": "boolean"
+        },
+        "one_primary_action_per_clip": {
+          "type": "boolean"
+        },
+        "maximum_minor_supporting_actions": {
+          "type": "integer"
+        },
+        "maximum_camera_movements": {
+          "type": "integer"
+        },
+        "generated_readable_text_forbidden": {
+          "type": "boolean"
+        },
+        "geometry_transformation_forbidden": {
+          "type": "boolean"
+        },
+        "generic_facility_fallback_cannot_be_presented_as_exact": {
+          "type": "boolean"
+        },
+        "reference_asset_required_when_text_is_insufficient": {
+          "type": "boolean"
+        },
+        "exact_layout_requires_verified_reference": {
+          "type": "boolean"
+        },
+        "conceptual_cutaways_must_be_visually_generic_and_not_to_scale_when_layout_unknown": {
+          "type": "boolean"
+        },
+        "active_security_detail_generation_forbidden": {
+          "type": "boolean"
+        },
+        "final_prompt_generation_belongs_to_app": {
+          "type": "boolean"
+        },
+        "transcript_alignment_belongs_to_app": {
+          "type": "boolean"
+        },
+        "scene_plan_must_precede_prompt_generation": {
+          "type": "boolean"
+        },
+        "visual_beat_must_have_narrative_purpose": {
+          "type": "boolean"
+        },
+        "editor_native_graphics_required_for_readable_maps_timelines_and_diagrams": {
+          "type": "boolean"
+        },
+        "historical_event_reconstruction_must_not_be_claimed_as_authentic_footage": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

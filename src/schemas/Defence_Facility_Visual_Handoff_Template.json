@@ -1,0 +1,535 @@
+{
+  "schema": {
+    "name": "Secret Defence Facilities Visual Production Handoff",
+    "version": "0.9.0",
+    "contract_type": "VISUAL_ONLY_ENGINE_TO_APP_HANDOFF",
+    "project_scope": "SECRET_UNUSUAL_DEFENCE_FACILITIES_CONSTRUCTION_DOCUMENTARY",
+    "template_status": "DRAFT_PENDING_CREATOR_PREFERENCES"
+  },
+  "facility": {
+    "official_name": "",
+    "aliases": [],
+    "facility_class": "",
+    "country_or_operator": "",
+    "builder_or_engineering_organizations": [],
+    "construction_era": "",
+    "facility_status": "UNKNOWN",
+    "public_location_name": "",
+    "location_precision_policy": "PUBLIC_SITE_NAME_ONLY",
+    "overall_visual_description": "",
+    "immutable_identity_features": [],
+    "visually_similar_facilities_to_avoid": [],
+    "global_negative_constraints": []
+  },
+  "historical_context": {
+    "construction_period_start": "",
+    "construction_period_end": "",
+    "geopolitical_context": "",
+    "strategic_problem": "",
+    "intended_role": "",
+    "actual_role_if_different": "",
+    "current_status": "",
+    "key_publicly_documented_events": [],
+    "uncertainty_notes": []
+  },
+  "site_dimensions_and_spatial_relations": {
+    "overall_site_extent": {
+      "value": null,
+      "unit": "",
+      "confidence": "UNKNOWN"
+    },
+    "maximum_documented_depth_or_overburden": {
+      "value": null,
+      "unit": "",
+      "confidence": "UNKNOWN"
+    },
+    "documented_tunnel_or_internal_length": {
+      "value": null,
+      "unit": "",
+      "confidence": "UNKNOWN"
+    },
+    "documented_major_chamber_dimensions": [],
+    "important_spatial_relationships": [],
+    "terrain_relationships": [],
+    "human_scale_reference": "",
+    "layout_claim_status": "UNKNOWN"
+  },
+  "facility_modules": [
+    {
+      "module_id": "FACILITY_WHOLE",
+      "module_name": "",
+      "module_type": "",
+      "verified_function": "",
+      "location_relation": "",
+      "required_visible_features": [],
+      "spatial_relationships": [],
+      "minimum_visible_anchor_count": 3,
+      "forbidden_layout_claims": [],
+      "likely_wrong_substitutions": []
+    }
+  ],
+  "reference_assets": [
+    {
+      "asset_id": "REF_001",
+      "asset_type": "ARCHIVAL_IMAGE",
+      "facility_or_module": "",
+      "construction_or_operational_state": "",
+      "view_angle_or_document_scope": "",
+      "source_page_url": "",
+      "direct_media_url_or_file_reference": "",
+      "publisher_or_owner": "",
+      "date_or_event": "",
+      "visual_verification": "PASS",
+      "facility_claim_status": "UNUSABLE",
+      "layout_claim_status": "UNKNOWN",
+      "exact_site_verified": false,
+      "visible_or_documented_features": [],
+      "allowed_usage": [],
+      "forbidden_usage": [],
+      "recommended_media_routes": [],
+      "confidence": "UNKNOWN"
+    }
+  ],
+  "environments": [
+    {
+      "environment_id": "ENV_SITE_CONTEXT",
+      "environment_name": "",
+      "setting_scope": "OUTDOOR",
+      "environment_type": "TERRAIN_OR_SITE_CONTEXT",
+      "facility_claim_status": "GENERIC_NON_IDENTIFYING_VISUAL",
+      "exact_facility_name_if_verified": "",
+      "geographic_context": "",
+      "terrain": "",
+      "ground_or_surface_condition": "",
+      "weather_or_climate": "",
+      "lighting": "",
+      "visible_exterior_features": [],
+      "construction_features": [],
+      "machinery": [],
+      "temporary_works": [],
+      "tools": [],
+      "worker_roles": [],
+      "worker_uniforms_and_ppe": [],
+      "scale_references": [],
+      "allowed_background_activity": [],
+      "forbidden_elements": []
+    },
+    {
+      "environment_id": "ENV_CONSTRUCTION_ZONE",
+      "environment_name": "",
+      "setting_scope": "INTERIOR_OR_SUBSURFACE",
+      "environment_type": "ACTIVE_CONSTRUCTION_ZONE",
+      "facility_claim_status": "GENERIC_NON_IDENTIFYING_VISUAL",
+      "exact_facility_name_if_verified": "",
+      "geographic_context": "",
+      "terrain": "",
+      "ground_or_surface_condition": "",
+      "weather_or_climate": "",
+      "lighting": "",
+      "visible_exterior_features": [],
+      "construction_features": [],
+      "machinery": [],
+      "temporary_works": [],
+      "tools": [],
+      "worker_roles": [],
+      "worker_uniforms_and_ppe": [],
+      "scale_references": [],
+      "allowed_background_activity": [],
+      "forbidden_elements": []
+    },
+    {
+      "environment_id": "ENV_COMPLETED_FACILITY",
+      "environment_name": "",
+      "setting_scope": "INTERIOR_OR_SUBSURFACE",
+      "environment_type": "COMPLETED_OR_OPERATIONAL_FACILITY",
+      "facility_claim_status": "GENERIC_NON_IDENTIFYING_VISUAL",
+      "exact_facility_name_if_verified": "",
+      "geographic_context": "",
+      "terrain": "",
+      "ground_or_surface_condition": "",
+      "weather_or_climate": "",
+      "lighting": "",
+      "visible_exterior_features": [],
+      "construction_features": [],
+      "machinery": [],
+      "temporary_works": [],
+      "tools": [],
+      "worker_roles": [],
+      "worker_uniforms_and_ppe": [],
+      "scale_references": [],
+      "allowed_background_activity": [],
+      "forbidden_elements": []
+    }
+  ],
+  "construction_stages": [
+    {
+      "stage_id": "STG_01",
+      "stage_number": 1,
+      "stage_name": "",
+      "construction_function": "",
+      "facility_state_code": "A",
+      "stage_visual_summary": "",
+      "environment_ids": [
+        "ENV_SITE_CONTEXT"
+      ],
+      "site_state": {
+        "overall_form": "",
+        "surface_state": "",
+        "subsurface_state": "",
+        "recognizable_as_final_facility": false,
+        "access_state": "",
+        "temporary_works_state": "",
+        "permanent_works_state": "",
+        "interior_visibility": ""
+      },
+      "present_now": [],
+      "not_yet_built_or_installed": [],
+      "temporarily_exposed": [],
+      "open_interfaces": [],
+      "temporary_works_present": [],
+      "removed_material_or_spoil_state": "",
+      "geometry_control": {
+        "primary_facility_module_id": "FACILITY_WHOLE",
+        "secondary_facility_module_ids": [],
+        "required_visible_anchors": [],
+        "minimum_visible_anchor_count": 0,
+        "corrective_positive_geometry": [],
+        "likely_wrong_substitutions": [],
+        "negative_constraints": [],
+        "immutable_during_clip": [],
+        "forbidden_transformations": []
+      },
+      "stage_actions": [
+        {
+          "action_id": "STG_01_ACT_01",
+          "action_description": "",
+          "primary_subject": "",
+          "primary_action": "",
+          "allowed_minor_motion": "",
+          "required_tools_or_machinery": [],
+          "required_worker_roles": [],
+          "forbidden_actions": []
+        }
+      ],
+      "camera_guidance": {
+        "preferred_views": [],
+        "safe_shot_scales": [],
+        "preferred_camera_movements": [],
+        "forbidden_camera_movements": [],
+        "high_risk_views": []
+      },
+      "stage_visual_opportunities": {
+        "recommended_visual_families": [],
+        "terrain_and_scale_opportunities": [],
+        "access_and_logistics_opportunities": [],
+        "excavation_or_tunneling_opportunities": [],
+        "machinery_action_opportunities": [],
+        "worker_activity_opportunities": [],
+        "material_flow_opportunities": [],
+        "quality_control_opportunities": [],
+        "archival_or_reference_opportunities": [],
+        "technical_graphic_opportunities": [],
+        "non_facility_cutaway_opportunities": []
+      },
+      "visual_evidence": {
+        "confirmed_visual_details": [],
+        "analyst_inferred_visual_details": [],
+        "uncertain_visual_details": [],
+        "excluded_visual_claims": [],
+        "reference_asset_ids": []
+      },
+      "continuity": {
+        "previous_stage_end_state": "",
+        "current_stage_start_state": "",
+        "current_stage_end_state": "",
+        "next_stage_expected_state": "",
+        "features_that_must_remain_consistent": [],
+        "temporary_features_that_may_disappear": [],
+        "forbidden_regressions": []
+      },
+      "prompt_constraints": {
+        "one_stable_facility_state": true,
+        "one_primary_action": true,
+        "no_permanent_feature_appears_before_construction": true,
+        "no_automatic_completion_of_facility": true,
+        "no_geometry_morphing": true,
+        "no_readable_generated_text": true,
+        "no_invented_exact_layout": true,
+        "must_repeat_present_and_absent_features": true,
+        "must_include_view_specific_geometry": true
+      }
+    }
+  ],
+  "stage_transitions": [],
+  "visual_story_plan": {
+    "documentary_arc": {
+      "central_construction_question": "",
+      "central_mystery_question": "",
+      "strategic_context_question": "",
+      "opening_visual_promise": "",
+      "promised_engineering_payoffs": [],
+      "purpose_reveal": "",
+      "closing_visual_payoff": "",
+      "facility_fate_or_present_day_payoff": ""
+    },
+    "chapters": [
+      {
+        "chapter_id": "CH01",
+        "chapter_name": "",
+        "chapter_order": 1,
+        "narrative_goal": "",
+        "chapter_question": "",
+        "chapter_payoff": "",
+        "opening_rehook_intent": "",
+        "applicable_construction_stage_ids": [
+          "STG_01"
+        ],
+        "required_visual_families": [],
+        "optional_visual_families": [],
+        "forbidden_visual_families": [],
+        "visual_beats": [
+          {
+            "beat_id": "CH01_B01",
+            "beat_order": 1,
+            "beat_name": "",
+            "story_function": "ESTABLISH_LOCATION",
+            "visual_family": "TERRAIN_CONTEXT",
+            "narrative_purpose": "",
+            "semantic_alignment_terms": [],
+            "applicable_stage_ids": [],
+            "environment_ids": [
+              "ENV_SITE_CONTEXT"
+            ],
+            "facility_visibility": "NONE",
+            "required_facility_state_code": null,
+            "facility_claim_status": "GENERIC_NON_IDENTIFYING_VISUAL",
+            "layout_claim_status": "UNKNOWN",
+            "reference_asset_ids": [],
+            "preferred_media_routes": [
+              "GENERATED_T2V"
+            ],
+            "generation_permission": "T2V_ALLOWED",
+            "exact_site_claim_allowed": false,
+            "exact_layout_claim_allowed": false,
+            "preferred_shot_scales": [
+              "EXTREME_WIDE"
+            ],
+            "preferred_camera_movements": [
+              "SLOW_FORWARD_AERIAL"
+            ],
+            "minimum_usable_duration_seconds": 3,
+            "preferred_duration_seconds": 7,
+            "maximum_duration_seconds": 10,
+            "must_show": [],
+            "must_not_show": [],
+            "continuity_requirements": [],
+            "negative_constraints": []
+          }
+        ]
+      }
+    ],
+    "rhythm_policy": {
+      "preferred_usable_scene_duration_seconds": {
+        "minimum": 4,
+        "preferred": 7,
+        "maximum": 10
+      },
+      "maximum_consecutive_same_visual_family": 2,
+      "maximum_consecutive_full_facility_scenes": 2,
+      "maximum_consecutive_same_environment_without_new_information": 3,
+      "require_context_process_detail_cycle_when_supported": true,
+      "attention_reset_interval_seconds": {
+        "minimum": 35,
+        "maximum": 60
+      },
+      "minimum_meaningful_visual_families_per_60_seconds": 3,
+      "avoid_repeated_camera_angle": true,
+      "avoid_repeated_camera_movement": true,
+      "avoid_decorative_visuals_without_narrative_purpose": true
+    },
+    "media_routing_policy": {
+      "exact_historical_events_prefer_authentic_media": true,
+      "exact_facility_geometry_prefers_reference_media": true,
+      "exact_internal_layout_requires_verified_reference": true,
+      "exact_markings_require_reference_lock": true,
+      "maps_timelines_dimensions_and_diagrams_require_editor_graphics": true,
+      "generated_t2v_allowed_for_contextual_non_identifying_visuals": true,
+      "conceptual_cutaway_allowed_only_when_not_presented_as_exact": true,
+      "no_valid_route_must_be_flagged": true
+    },
+    "visual_balance_targets": {
+      "construction_and_engineering_percent": {
+        "minimum": 35,
+        "maximum": 45
+      },
+      "terrain_scale_access_and_logistics_percent": {
+        "minimum": 15,
+        "maximum": 20
+      },
+      "archival_history_and_reference_media_percent": {
+        "minimum": 15,
+        "maximum": 20
+      },
+      "technical_graphics_maps_and_cutaways_percent": {
+        "minimum": 10,
+        "maximum": 15
+      },
+      "operational_context_abandonment_and_fate_percent": {
+        "minimum": 10,
+        "maximum": 15
+      },
+      "hero_facility_imagery_percent": {
+        "minimum": 5,
+        "maximum": 10
+      },
+      "targets_are_advisory_not_hard_quotas": true
+    }
+  },
+  "sensitivity_and_truth_policy": {
+    "facility_claim_status_values": [
+      "EXACT_SITE_VERIFIED",
+      "FACILITY_TYPE_CORROBORATED",
+      "CONTEXTUAL_DEFENCE_INFRASTRUCTURE",
+      "GENERIC_NON_IDENTIFYING_VISUAL",
+      "UNUSABLE"
+    ],
+    "layout_claim_status_values": [
+      "EXACT_LAYOUT_VERIFIED",
+      "PARTIAL_LAYOUT_VERIFIED",
+      "CONCEPTUAL_RELATIONSHIP_ONLY",
+      "UNKNOWN"
+    ],
+    "facility_status_values": [
+      "HISTORICAL",
+      "DECLASSIFIED",
+      "ABANDONED",
+      "PRESERVED_OR_MUSEUM",
+      "ACTIVE_PUBLICLY_DOCUMENTED",
+      "PROPOSED_OR_UNBUILT",
+      "UNKNOWN"
+    ],
+    "exact_site_claim_requires_verified_reference": true,
+    "exact_layout_claim_requires_declassified_or_official_reference": true,
+    "conceptual_reconstruction_must_not_imply_exact_layout": true,
+    "active_facility_access_routes_forbidden": true,
+    "active_security_procedures_forbidden": true,
+    "current_guard_patterns_forbidden": true,
+    "vulnerability_analysis_forbidden": true,
+    "security_blind_spots_forbidden": true,
+    "weapons_employment_instructions_forbidden": true,
+    "historical_public_construction_detail_allowed": true,
+    "generated_facility_signage_forbidden": true,
+    "generated_readable_markings_forbidden": true,
+    "invented_facility_names_forbidden": true
+  },
+  "global_prompt_rules": {
+    "visual_family_values": [
+      "SITE_AERIAL",
+      "TERRAIN_CONTEXT",
+      "FACILITY_EXTERIOR",
+      "ACCESS_AND_LOGISTICS",
+      "CONSTRUCTION_CAMP",
+      "SURVEY_AND_PREPARATION",
+      "EXCAVATION_AND_BLASTING",
+      "TUNNELING",
+      "ROCK_REMOVAL",
+      "TEMPORARY_WORKS",
+      "CONCRETE_AND_LINING",
+      "STRUCTURAL_FIT_OUT",
+      "INTERNAL_SYSTEMS",
+      "WORKER_POV",
+      "MACHINERY_ACTION",
+      "MATERIAL_FLOW",
+      "QUALITY_CONTROL",
+      "ENVIRONMENTAL_CHALLENGE",
+      "ARCHIVAL_REFERENCE",
+      "MAP_OR_TIMELINE",
+      "TECHNICAL_GRAPHIC",
+      "CUTAWAY_RECONSTRUCTION",
+      "OPERATIONAL_CONTEXT",
+      "ABANDONMENT_OR_REMAINS",
+      "HERO_FACILITY",
+      "CHAPTER_TRANSITION",
+      "ATMOSPHERIC_INTERSTITIAL"
+    ],
+    "story_function_values": [
+      "OPENING_HOOK",
+      "ESTABLISH_MYSTERY",
+      "ESTABLISH_LOCATION",
+      "ESTABLISH_SCALE",
+      "EXPLAIN_STRATEGIC_NEED",
+      "INTRODUCE_CONSTRUCTION_PROBLEM",
+      "EXPLAIN_PROCESS",
+      "SHOW_HUMAN_SCALE",
+      "SHOW_LOGISTICS",
+      "EXPLAIN_HIDDEN_SYSTEM",
+      "EXPLAIN_SPATIAL_RELATIONSHIP",
+      "BRIDGE_STAGE",
+      "RESET_ATTENTION",
+      "PREVIEW_PAYOFF",
+      "REVEAL_PURPOSE",
+      "DELIVER_ENGINEERING_PAYOFF",
+      "PROVIDE_HISTORICAL_CONTEXT",
+      "SHOW_FAILURE_OR_LIMIT",
+      "CONCLUDE_CHAPTER",
+      "RESOLVE_FATE"
+    ],
+    "facility_visibility_values": [
+      "NONE",
+      "PARTIAL",
+      "FULL",
+      "DETAIL_ONLY"
+    ],
+    "generation_permission_values": [
+      "T2V_ALLOWED",
+      "REFERENCE_REQUIRED",
+      "EDITOR_ONLY",
+      "NOT_ALLOWED"
+    ],
+    "media_route_values": [
+      "GENERATED_T2V",
+      "REFERENCE_IMAGE_I2V",
+      "AUTHENTIC_VIDEO",
+      "ARCHIVAL_IMAGE",
+      "ARCHIVAL_VIDEO",
+      "SATELLITE_REFERENCE",
+      "EDITOR_NATIVE_GRAPHIC",
+      "REFERENCE_LOCKED_GRAPHIC",
+      "STATIC_IMAGE_WITH_MOTION",
+      "NO_VALID_ROUTE"
+    ],
+    "evidence_confidence_values": [
+      "CONFIRMED",
+      "CORROBORATED",
+      "CREATOR_PROVIDED",
+      "ANALYST_INFERRED",
+      "UNVERIFIED",
+      "UNKNOWN"
+    ],
+    "facility_state_code_values": {
+      "A": "site, terrain, access, survey, excavation, or pre-facility state",
+      "B": "partial facility, structural shell, tunnel network, fit-out, or incomplete installation state",
+      "C": "completed, commissioned, operational, decommissioned, abandoned, or preserved physical facility state"
+    },
+    "use_positive_geometry_before_negative_constraints": true,
+    "use_smallest_relevant_facility_module": true,
+    "treat_each_generated_clip_as_stateless": true,
+    "one_stable_state_per_clip": true,
+    "one_primary_action_per_clip": true,
+    "maximum_minor_supporting_actions": 1,
+    "maximum_camera_movements": 1,
+    "generated_readable_text_forbidden": true,
+    "geometry_transformation_forbidden": true,
+    "generic_facility_fallback_cannot_be_presented_as_exact": true,
+    "reference_asset_required_when_text_is_insufficient": true,
+    "exact_layout_requires_verified_reference": true,
+    "conceptual_cutaways_must_be_visually_generic_and_not_to_scale_when_layout_unknown": true,
+    "active_security_detail_generation_forbidden": true,
+    "final_prompt_generation_belongs_to_app": true,
+    "transcript_alignment_belongs_to_app": true,
+    "scene_plan_must_precede_prompt_generation": true,
+    "visual_beat_must_have_narrative_purpose": true,
+    "editor_native_graphics_required_for_readable_maps_timelines_and_diagrams": true,
+    "historical_event_reconstruction_must_not_be_claimed_as_authentic_footage": true
+  }
+}
