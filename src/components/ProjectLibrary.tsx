@@ -96,11 +96,11 @@ export function ProjectLibrary({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="sm:max-w-md p-0 flex flex-col font-mono" showCloseButton={false}>
-        <SheetHeader className="p-6 pb-2">
+      <SheetContent side="left" className="flex flex-col border-r border-border/60 bg-background/95 p-0 backdrop-blur-xl sm:max-w-md" showCloseButton={false}>
+        <SheetHeader className="border-b border-border/40 p-6 pb-5">
           <div className="flex items-center justify-between mb-4">
-            <SheetTitle className="text-xl font-bold tracking-widest text-amber-500 flex items-center gap-2">
-              <FolderOpen className="h-5 w-5" /> PROJECT LIBRARY
+            <SheetTitle className="flex items-center gap-3 text-lg font-bold tracking-tight">
+              <span className="brand-mark flex h-9 w-9 items-center justify-center rounded-xl"><FolderOpen className="h-4 w-4" /></span><span>Project library</span>
             </SheetTitle>
             <SheetClose 
               id="library-close-button"
@@ -115,7 +115,7 @@ export function ProjectLibrary({
           <Button 
             id="new-project-button-library"
             onClick={onNewProject}
-            className="w-full bg-primary text-primary-foreground font-bold h-11 tracking-wider"
+            className="h-11 w-full font-bold tracking-wide shadow-[0_12px_26px_hsl(var(--primary)/0.16)]"
           >
             <Plus className="h-4 w-4 mr-2" /> NEW PROJECT
           </Button>
@@ -127,13 +127,13 @@ export function ProjectLibrary({
               placeholder="Search projects..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-muted/30 border-muted-foreground/20 text-xs h-9"
+            className="h-10 border-border/60 bg-card/45 pl-10 text-xs"
             />
           </div>
         </SheetHeader>
 
         <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 py-4">
+          <div className="space-y-3 py-4">
             {filteredProjects.length === 0 ? (
               <div className="h-[400px] flex flex-col items-center justify-center text-center space-y-4">
                 <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground/30">
@@ -152,7 +152,7 @@ export function ProjectLibrary({
                 return (
                   <div 
                     key={project.id}
-                    className="p-4 rounded-lg bg-muted/10 border border-border/50 hover:border-primary/30 transition-all group overflow-hidden"
+                    className="group overflow-hidden rounded-2xl border border-border/50 bg-card/45 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_14px_36px_hsl(220_50%_3%/0.12)]"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="space-y-1">
@@ -240,7 +240,7 @@ export function ProjectLibrary({
           </div>
         </ScrollArea>
 
-        <div className="p-6 border-t border-border/50 bg-muted/5">
+        <div className="border-t border-border/50 bg-muted/20 p-6">
            <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground mb-2">
              <div className="flex items-center gap-1.5">
                <Database className="h-3 w-3" />

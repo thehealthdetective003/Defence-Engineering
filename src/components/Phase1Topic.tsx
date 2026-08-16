@@ -148,15 +148,15 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
     }));
   };
   return (
-    <div className="flex flex-col h-full w-full space-y-6 pb-20">
+    <div className="flex h-full w-full flex-col space-y-6">
       {/* 1. TOP SECTION - Instructions */}
       <Collapsible
         open={isHowToOpen}
         onOpenChange={setIsHowToOpen}
-        className="bg-muted/10 border border-border rounded-lg overflow-hidden"
+        className="inset-panel overflow-hidden rounded-2xl"
       >
-        <CollapsibleTrigger className="w-full flex justify-between items-center p-4 h-auto hover:bg-muted/20 outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all">
-          <span className="font-mono text-amber-500 font-bold tracking-widest text-sm">HOW TO USE</span>
+        <CollapsibleTrigger className="flex h-auto w-full items-center justify-between p-4 outline-none transition-all hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-primary/40">
+          <span className="section-kicker">Quick start guide</span>
           {isHowToOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </CollapsibleTrigger>
         <CollapsibleContent className="p-4 pt-0 space-y-4">
@@ -170,7 +170,7 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
               variant="outline" 
               size="sm" 
               onClick={handleDownloadTemplate}
-              className="font-mono text-[10px] h-8 bg-muted/20 border-border hover:bg-muted/40"
+              className="h-8 border-border bg-card/50 font-mono text-[10px] hover:border-primary/30 hover:bg-primary/5"
             >
               <Download className="h-3 w-3 mr-2" />
               Download blank template
@@ -179,7 +179,7 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
               variant="outline" 
               size="sm" 
               onClick={handleCopyPrompt}
-              className="font-mono text-[10px] h-8 bg-muted/20 border-border hover:bg-muted/40"
+              className="h-8 border-border bg-card/50 font-mono text-[10px] hover:border-primary/30 hover:bg-primary/5"
             >
               <Copy className="h-3 w-3 mr-2" />
               Copy LLM prompt
@@ -190,16 +190,16 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
       {/* 2. MIDDLE SECTION - JSON Paste */}
       <div className="space-y-4">
         <div className="grid sm:grid-cols-[1fr_auto] gap-3">
-          <Button className="relative h-14 bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold tracking-widest">
-            <FileJson className="h-5 w-5 mr-2"/>IMPORT FACILITY HANDOFF JSON
+          <Button className="relative min-h-14 h-auto whitespace-normal px-4 text-center text-xs font-bold tracking-[0.08em] shadow-[0_14px_32px_hsl(var(--primary)/0.18)] sm:text-sm sm:tracking-[0.12em]">
+            <FileJson className="h-5 w-5 mr-2"/><span className="sm:hidden">IMPORT HANDOFF JSON</span><span className="hidden sm:inline">IMPORT FACILITY HANDOFF JSON</span>
             <input type="file" accept=".json,application/json" className="absolute inset-0 opacity-0 cursor-pointer" onChange={event=>{const file=event.target.files?.[0]; if(file) handleImportBrief(file); event.currentTarget.value='';}}/>
           </Button>
-          <Button variant="outline" className="h-14" onClick={()=>setShowPasteEditor(value=>!value)}>{showPasteEditor?'HIDE JSON EDITOR':'PASTE JSON (OPTIONAL)'}</Button>
+          <Button variant="outline" className="h-14 border-border/70 bg-card/40 px-5 hover:border-primary/30 hover:bg-primary/5" onClick={()=>setShowPasteEditor(value=>!value)}>{showPasteEditor?'HIDE JSON EDITOR':'PASTE JSON (OPTIONAL)'}</Button>
         </div>
         <div className="space-y-2 block">
           {/* Left Column: Existing JSON Blueprint Box */}
           <div className="space-y-2 block">
-            {showPasteEditor && <><label className="text-xs font-mono font-bold tracking-wider text-amber-500/80 uppercase">
+            {showPasteEditor && <><label className="section-kicker">
               PROJECT JSON BLUEPRINT [IMPORT REVIEW / OPTIONAL PASTE]
             </label>
             <div className="relative block">
@@ -214,9 +214,9 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
                   setValidationResult(null);
                 }}
                 placeholder="{ paste your completed topic brief JSON here... }"
-                className="h-[500px] overflow-y-auto resize-none font-mono text-xs bg-muted/30 dark:bg-[#040406] border-border/60 hover:border-amber-500/20 focus-visible:ring-amber-500/50 p-4 text-foreground dark:text-amber-100 shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)] focus-visible:border-amber-500/50 rounded-md"
+                className="code-surface scrollbar-thin h-[500px] resize-none overflow-y-auto rounded-xl p-4 font-mono text-xs focus-visible:border-primary/50 focus-visible:ring-primary/35"
               />
-              <div className="absolute top-3 right-3 text-amber-500/20 pointer-events-none">
+              <div className="pointer-events-none absolute right-3 top-3 text-primary/25">
                 <FileJson className="h-8 w-8" />
               </div>
             </div></>}
@@ -271,7 +271,7 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
               "w-full h-14 font-bold text-lg tracking-widest transition-all duration-300",
               isValid 
                 ? "bg-green-600 hover:bg-green-700 text-white" 
-                : "bg-amber-500 hover:bg-amber-600 text-amber-950"
+                : "bg-primary text-primary-foreground hover:bg-primary/85 shadow-[0_14px_32px_hsl(var(--primary)/0.18)]"
             )}
           >
             {isValid ? (
@@ -334,7 +334,7 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
                     GLOBAL NEGATIVES {getNegativePromptGlobal(parsedBrief).length}
                   </Badge>
                 </div>
-                <div className="p-6 rounded-xl border border-border/20 bg-card">
+                <div className="inset-panel rounded-2xl p-5 sm:p-6">
                   <StandardPreview data={parsedBrief as any} />
                 </div>
             </div>
@@ -342,7 +342,7 @@ export function Phase1Topic({ state, setState }: Phase1TopicProps) {
               <Button 
                 size="lg"
                 onClick={handleLockTopic}
-                className="w-full h-14 bg-amber-500 text-amber-950 hover:bg-amber-600 font-bold xl:text-lg tracking-widest shadow-xl"
+                className="h-14 w-full font-bold tracking-widest shadow-[0_14px_34px_hsl(var(--primary)/0.2)] xl:text-lg"
               >
                 LOCK BRIEF → PHASE 2
                 <ArrowRight className="ml-2 h-5 w-5" />

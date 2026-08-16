@@ -1,17 +1,19 @@
 import { TimedScene, TimedWord, VoiceoverTranscription } from '../types';
+import { requireSceneDuration, timedSceneCount } from './sceneDuration';
 
-export function buildTimedScenes(words: TimedWord[], audioDuration: number, sceneDuration: 8 | 10): TimedScene[] {
+export function buildTimedScenes(words: TimedWord[], audioDuration: number, sceneDuration: number): TimedScene[] {
   if (!Number.isFinite(audioDuration) || audioDuration <= 0) return [];
-  const count = Math.ceil(audioDuration / sceneDuration);
+  const duration = requireSceneDuration(sceneDuration);
+  const count = timedSceneCount(audioDuration, duration);
   const buckets: TimedWord[][] = Array.from({ length: count }, () => []);
   words.forEach(word => {
     const midpoint = (Number(word.start) + Number(word.end)) / 2;
-    const index = Math.max(0, Math.min(count - 1, Math.floor(midpoint / sceneDuration)));
+    const index = Math.max(0, Math.min(count - 1, Math.floor(midpoint / duration)));
     buckets[index].push(word);
   });
   return buckets.map((bucket, index) => {
-    const start = index * sceneDuration;
-    const end = Math.min(audioDuration, start + sceneDuration);
+    const start = index * duration;
+    const end = Math.min(audioDuration, start + duration);
     return {
       number: index + 1, start: Number(start.toFixed(3)), end: Number(end.toFixed(3)),
       duration: Number((end - start).toFixed(3)),
@@ -21,8 +23,9 @@ export function buildTimedScenes(words: TimedWord[], audioDuration: number, scen
   });
 }
 
-export function resplitTranscription(transcription: VoiceoverTranscription, sceneDuration: 8 | 10): VoiceoverTranscription {
-  return { ...transcription, sceneDurationSeconds: sceneDuration, scenes: buildTimedScenes(transcription.words, transcription.duration, sceneDuration) };
+export function resplitTranscription(transcription: VoiceoverTranscription, sceneDuration: number): VoiceoverTranscription {
+  const duration = requireSceneDuration(sceneDuration);
+  return { ...transcription, sceneDurationSeconds: duration, scenes: buildTimedScenes(transcription.words, transcription.duration, duration) };
 }
 
 export function resetDownstreamForTiming<T extends Record<string, any>>(state: T): T {

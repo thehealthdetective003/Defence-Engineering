@@ -2,15 +2,16 @@ import { AppState, T2VPrompt } from '../types';
 import { resplitTranscription } from './timedTranscript';
 import { ensureRequiredVisibleFeatures, validateSceneDirections } from './sceneDirections';
 import { deriveGraphicSceneSpec, resolvePlannedState } from './scenePlanner';
+import { normalizeSceneDuration } from './sceneDuration';
 
 export type MigrationResult = { state: AppState | null; message?: string; error?: string };
 
-export function projectSceneDuration(raw: any, fallback: 8 | 10): 8 | 10 {
+export function projectSceneDuration(raw: any, fallback: number): number {
   const value = Number(raw?.voiceoverTranscription?.sceneDurationSeconds);
-  return value === 8 || value === 10 ? value : fallback;
+  return normalizeSceneDuration(value, fallback);
 }
 
-export function migrateProject(raw: any, initial: AppState, sceneDuration: 8 | 10): MigrationResult {
+export function migrateProject(raw: any, initial: AppState, sceneDuration: number): MigrationResult {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { state: null, error: 'Invalid project file.' };
   const facilityHandoff=raw.topic?._production_handoff;
   const hasFacilityContract=facilityHandoff?.schema?.name==='Secret Defence Facilities Visual Production Handoff'&&facilityHandoff?.schema?.version==='0.9.0';

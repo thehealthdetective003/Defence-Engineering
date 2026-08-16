@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildTimedScenes } from './timedTranscript';
 
-test('builds exact 10 second windows with a partial final scene', () => {
+test('builds arbitrary fractional windows with a partial final scene', () => {
   const scenes = buildTimedScenes([
     { text: ' Hello', start: 0.2, end: 0.6, probability: 1 },
-    { text: ' boundary', start: 9.8, end: 10.4, probability: 1 },
-    { text: ' end', start: 20.1, end: 20.4, probability: 1 },
-  ], 21.25, 10);
+    { text: ' boundary', start: 6.3, end: 6.8, probability: 1 },
+    { text: ' end', start: 13.1, end: 13.4, probability: 1 },
+  ], 14.25, 6.5);
   assert.equal(scenes.length, 3);
   assert.equal(scenes[0].text, 'Hello');
   assert.equal(scenes[1].text, 'boundary');

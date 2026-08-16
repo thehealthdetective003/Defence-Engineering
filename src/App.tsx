@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'motion/react';
-import { Moon, Sun, CheckCircle2, FilePlus, FolderOpen, AlertCircle, FileUp, FileDown, Wrench } from 'lucide-react';
+import { Moon, Sun, CheckCircle2, FilePlus, FolderOpen, AlertCircle, FileUp, FileDown, Wrench, Shield, MapPinned, Workflow, WandSparkles, ChevronDown, DatabaseZap, CircleGauge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { 
   Dialog, 
@@ -26,9 +26,9 @@ import { toast } from 'sonner';
 import { resplitTranscription, resetDownstreamForTiming } from './lib/timedTranscript';
 import { migrateProject, projectSceneDuration } from './lib/projectMigration';
 const PHASES = [
-  { id: 1, label: 'TOPIC', description: 'Select Defence Facility' },
-  { id: 2, label: 'VO & DIRECTION', description: 'Import Timestamps and Direct Scenes' },
-  { id: 3, label: 'T2V PROMPTS', description: 'Generate Timestamped Video Prompts' },
+  { id: 1, label: 'FACILITY BRIEF', shortLabel: 'Brief', description: 'Load and verify the authoritative facility handoff', icon: MapPinned },
+  { id: 2, label: 'SCENE DIRECTION', shortLabel: 'Direction', description: 'Align timestamped narration with construction visuals', icon: Workflow },
+  { id: 3, label: 'PROMPT STUDIO', shortLabel: 'Prompts', description: 'Compile final facility-native generation prompts', icon: WandSparkles },
 ];
 export const INITIAL_STATE: AppState = {
   projectSchemaVersion: 11,
@@ -52,7 +52,7 @@ export default function App() {
   const { theme, setTheme } = useTheme();
   const { settings, setSettings, isLoaded } = useSettings();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isStepperOpen, setIsStepperOpen] = useState(true);
+  const [isStepperOpen, setIsStepperOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: 'new' | 'load', id?: string } | null>(null);
   const [lastSavedState, setLastSavedState] = useState<string>(JSON.stringify(INITIAL_STATE));
@@ -199,9 +199,12 @@ export default function App() {
       default: return false;
     }
   };
+  const completedPhaseCount = PHASES.filter(phase => isPhaseComplete(phase.id)).length;
+  const workflowProgress = Math.round((completedPhaseCount / PHASES.length) * 100);
+  const ActivePhaseIcon = activePhase?.icon || MapPinned;
   if (!isLoaded) return null;
   return (
-    <div className="min-h-screen bg-background text-foreground font-mono flex flex-col relative">
+    <div className="facility-shell min-h-screen bg-background text-foreground font-sans flex flex-col relative">
       <SettingsPanel state={state} setState={setState} open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
       <ProjectLibrary 
         open={isLibraryOpen} 
@@ -222,8 +225,8 @@ export default function App() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="bg-primary text-black font-bold"
               onClick={() => {
                 if (pendingAction?.type === 'new') confirmNewProject(true);
@@ -255,9 +258,9 @@ export default function App() {
             <AlertCircle className="h-4 w-4" />
             <span>STORAGE FULL. DELETE OLD PROJECTS TO FREE SPACE.</span>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="bg-white/10 border-white/20 hover:bg-white/20 text-white h-7 px-3 text-xs"
             onClick={() => setIsLibraryOpen(true)}
           >
@@ -265,26 +268,33 @@ export default function App() {
           </Button>
         </div>
       )}
-      {/* Top Bar */}
-      <header className="sticky top-0 z-20 border-b border-border/20 bg-background">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-mono font-bold tracking-[0.25em] text-primary uppercase">FACILITY // ENGINE</span>
-            <div className="flex items-center gap-2 ml-2 pl-4 border-l border-border/50">
-              <div className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-yellow-500' : 'bg-green-500'}`} />
-              <span className="text-[10px] sm:text-xs text-muted-foreground/80 font-mono truncate max-w-[120px] sm:max-w-[200px]">
-                {state.id ? (state.topic?.topic?.facility || state.projectName) : 'untitled facility documentary'}
-              </span>
+      <header className="app-header sticky top-0 z-20 border-b border-border/40">
+        <div className="mx-auto flex h-[76px] w-full max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="brand-mark flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-xs font-extrabold tracking-[0.08em] text-foreground sm:text-base"><span className="sm:hidden">FACILITY ENGINE</span><span className="hidden sm:inline">DEFENCE FACILITY ENGINE</span></span>
+                <Badge variant="outline" className="hidden border-primary/25 bg-primary/8 font-mono text-[9px] text-primary xl:inline-flex">STUDIO</Badge>
+              </div>
+              <div className="mt-0.5 hidden items-center gap-2 font-mono text-[10px] text-muted-foreground sm:flex">
+                <span className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-amber-400' : 'bg-primary'} ${!isDirty ? 'status-pulse' : ''}`} />
+                <span className="truncate max-w-[150px] sm:max-w-[270px]">{state.topic?.topic?.facility || state.projectName}</span>
+                <span className="hidden text-muted-foreground/50 sm:inline">·</span>
+                <span className="hidden uppercase tracking-wider sm:inline">{isDirty ? 'Saving changes' : 'Synced locally'}</span>
+              </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          <div className="flex shrink-0 items-center gap-1.5">
             <Button 
               id="projects-drawer-trigger"
-              variant="ghost" 
+              variant="outline"
               size="sm" 
               onClick={() => setIsLibraryOpen(true)} 
-              className="flex text-muted-foreground hover:text-foreground h-9"
+              className="h-9 border-border/60 bg-card/50 text-muted-foreground hover:border-primary/30 hover:text-foreground"
             >
               <FolderOpen className="h-4 w-4 mr-1.5" />
               <span className="hidden sm:inline">Library</span>
@@ -292,20 +302,20 @@ export default function App() {
             
             <Button 
               id="new-project-button-header"
-              variant="ghost" 
+              variant="ghost"
               size="sm" 
               onClick={handleNewProject} 
-              className="hidden sm:flex text-muted-foreground hover:text-foreground h-9"
+              className="hidden h-9 text-muted-foreground hover:text-foreground xl:flex"
             >
               <FilePlus className="h-4 w-4 mr-1.5" />
               New Draft
             </Button>
             {/* IMPORT PROJECT (LOAD) */}
-            <Button 
+            <Button
               id="load-project-file-header"
-              variant="outline" 
-              size="sm" 
-              className="hidden md:flex text-xs font-mono border-primary/20 text-primary hover:bg-primary/10 h-9 relative animate-fade-in"
+              variant="ghost"
+              size="sm"
+              className="relative hidden h-9 text-xs text-muted-foreground hover:text-foreground lg:flex"
             >
               <FileUp className="h-4 w-4 mr-1.5" />
               LOAD PROJECT
@@ -354,7 +364,7 @@ export default function App() {
             {/* EXPORT PROJECT (SAVE) */}
             <Button 
               id="save-project-file-header"
-              variant="outline" 
+              variant="default"
               size="sm" 
               onClick={() => {
                 const data = JSON.stringify(state, null, 2);
@@ -369,18 +379,18 @@ export default function App() {
                 URL.revokeObjectURL(url);
                 toast.success("Project JSON downloaded successfully");
               }} 
-              className="hidden md:flex text-xs font-mono border-green-500/30 text-green-400 hover:bg-green-500/10 h-9"
+              className="hidden h-9 text-xs font-semibold shadow-[0_8px_22px_hsl(var(--primary)/0.18)] md:flex"
             >
               <FileDown className="h-4 w-4 mr-1.5" />
               SAVE PROJECT
             </Button>
-            <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
-            <Button 
+            <Separator orientation="vertical" className="mx-1 hidden h-6 sm:block" />
+            <Button
               id="theme-toggle"
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary"
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -388,12 +398,12 @@ export default function App() {
             </Button>
             
             {/* TOOLBOX TRIGGER */}
-            <Button 
+            <Button
               id="settings-trigger"
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setIsSettingsOpen(true)} 
-              className="h-9 w-9 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSettingsOpen(true)}
+              className="h-9 w-9 rounded-xl bg-primary/10 text-primary hover:bg-primary/18 hover:text-primary"
               title="Facility Toolbox"
             >
               <Wrench className="h-4 w-4" />
@@ -401,113 +411,66 @@ export default function App() {
           </div>
         </div>
       </header>
-      {/* Main Content */}
-      <main className="flex-1 container mx-auto px-6 py-6 flex flex-col max-w-7xl">
-        
-        {/* Stepper */}
-        <div className="sticky top-16 z-10 bg-background -mx-4 px-4 sm:mx-0 sm:px-0 mb-8">
-          {/* Toggle handle */}
-          <button
-            onClick={() => setIsStepperOpen(o => !o)}
-            className="w-full flex items-center justify-between pt-3 pb-2 group"
-          >
-            <span className="text-[10px] font-mono tracking-[0.2em] text-muted-foreground uppercase">
-              {isStepperOpen
-                ? 'PHASES'
-                : `PHASE ${activePhase?.id} // ${activePhase?.label} — ${activePhase?.description}`}
-            </span>
-            <span className={`text-muted-foreground transition-transform duration-300 ${isStepperOpen ? 'rotate-180' : 'rotate-0'}`}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2 4.5L6 8.5L10 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-          </button>
-
-          {/* Collapsible content */}
-          <div
-            className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ maxHeight: isStepperOpen ? '120px' : '0px', opacity: isStepperOpen ? 1 : 0 }}
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-1 pb-6">
-              {PHASES.map((phase, index) => {
-                const isActive = state.phase === phase.id;
-                const isPast = state.phase > phase.id;
-                const completed = isPhaseComplete(phase.id);
-
-                return (
-                  <div key={phase.id} className="flex-1 flex items-center w-full group cursor-pointer" onClick={() => setState(s => ({ ...s, phase: phase.id as PhaseType }))}>
-                    <div className="flex flex-col relative w-full pr-2">
-                      <div className={`text-xs mb-2 transition-colors flex items-center gap-2 ${isActive ? 'text-primary font-medium' : isPast ? 'text-primary/80' : 'text-muted-foreground'}`}>
-                        <span className="shrink-0">{phase.id} // {phase.label}</span>
-                        {completed && <CheckCircle2 className="h-3 w-3 text-primary" />}
-                        {isActive && !completed && (
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                        )}
-                      </div>
-
-                      <div className="flex items-center w-full">
-                        <div className={`h-[2px] flex-1 rounded-l-full transition-colors ${isActive || isPast ? 'bg-primary' : 'bg-muted/40'}`} />
-                        {index < PHASES.length - 1 && (
-                          <div className={`h-[2px] flex-1 transition-colors ${isPast ? 'bg-primary' : 'bg-muted/40'}`} />
-                        )}
-                        {index === PHASES.length - 1 && (
-                          <div className={`h-[2px] flex-[0.1] rounded-r-full transition-colors ${isPast ? 'bg-primary' : 'bg-muted/40'}`} />
-                        )}
-                      </div>
-                      <div className={`text-xs mt-2 transition-colors line-clamp-1 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        {phase.description}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+      <main className="relative z-[1] mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <section className="mb-6 flex flex-col justify-between gap-5 border-b border-border/50 pb-6 md:flex-row md:items-end">
+          <div className="max-w-3xl">
+            <div className="section-kicker mb-3 flex items-center gap-2"><ActivePhaseIcon className="h-3.5 w-3.5"/> Documentary workspace · Phase 0{activePhase?.id}</div>
+            <h1 className="display-title text-balance text-3xl font-bold text-foreground sm:text-4xl lg:text-[2.75rem]">{activePhase?.label}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">{activePhase?.description}</p>
+          </div>
+          <div className="flex min-w-[230px] items-center gap-4 rounded-2xl border border-border/55 bg-card/45 px-4 py-3 backdrop-blur-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary"><CircleGauge className="h-5 w-5"/></div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground"><span>Workflow</span><span>{workflowProgress}%</span></div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{width:`${workflowProgress}%`}}/></div>
             </div>
           </div>
-          {/* Bottom border always visible */}
-          <div className="h-px bg-border/20" />
-        </div>
-        {/* Phase Content Area */}
-        <div className="flex-1 relative pb-20">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={state.phase}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <Card className="border border-border/40 bg-card shadow-sm rounded-xl relative overflow-hidden">
-                <CardHeader className="border-b border-border/20 bg-muted/40 py-5 px-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <CardTitle className="text-xl text-primary font-mono font-bold tracking-[0.1em] uppercase flex items-center gap-2">
-                        <span>PHASE 0{activePhase?.id} //</span>
-                        <span className="text-foreground">{activePhase?.label}</span>
-                      </CardTitle>
-                      <CardDescription className="text-xs text-muted-foreground uppercase tracking-wider">
-                        {activePhase?.description}
-                      </CardDescription>
+        </section>
+
+        <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className="hidden lg:block">
+            <div className="surface-panel sticky top-[100px] rounded-[22px] p-3">
+              <div className="px-3 pb-2 pt-2"><div className="section-kicker text-muted-foreground">Production route</div></div>
+              <nav className="space-y-1.5" aria-label="Documentary workflow">
+                {PHASES.map(phase => {
+                  const PhaseIcon = phase.icon;
+                  const active = state.phase === phase.id;
+                  const completed = isPhaseComplete(phase.id);
+                  return <button key={phase.id} type="button" data-active={active} onClick={()=>setState(previous=>({...previous,phase:phase.id as PhaseType}))} className="phase-nav-item w-full rounded-xl px-3 py-3.5 text-left">
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active?'bg-primary text-primary-foreground':'bg-muted/70 text-muted-foreground'}`}><PhaseIcon className="h-4 w-4"/></div>
+                      <div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><span className={`font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${active?'text-primary':'text-foreground'}`}>0{phase.id} · {phase.shortLabel}</span>{completed&&<CheckCircle2 className="h-3.5 w-3.5 text-primary"/>}</div><p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">{phase.description}</p></div>
                     </div>
-                    {isDirty && (
-                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 font-mono text-[10px] w-fit">
-                        UNSAVED CHANGES
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className={`min-h-[400px] ${activePhase?.id !== 1 && activePhase?.id !== 2 && activePhase?.id !== 3 ? "flex items-center justify-center border-y border-border/50 bg-muted/10 mx-6 mb-6 rounded-md border-dashed" : "p-4 sm:p-6 pt-0"}`}>
-                  {activePhase?.id === 1 ? (
-                    <Phase1Topic state={state} setState={setState} />
-                  ) : activePhase?.id === 2 ? (
-                    <Phase2Script state={state} setState={setState} />
-                  ) : activePhase?.id === 3 ? (
-                    <Phase4Visuals state={state} setState={setState} />
-                  ) : null}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </AnimatePresence>
+                  </button>;
+                })}
+              </nav>
+              <div className="mt-3 rounded-xl border border-border/50 bg-muted/20 p-3">
+                <div className="flex items-center gap-2 text-[11px] font-semibold"><DatabaseZap className="h-4 w-4 text-primary"/> Local-first workspace</div>
+                <p className="mt-1.5 text-[10px] leading-4 text-muted-foreground">Facility data, timing, directions, and prompts stay organized inside this project.</p>
+              </div>
+            </div>
+          </aside>
+
+          <section className="min-w-0">
+            <div className="surface-panel mb-4 rounded-2xl p-2 lg:hidden">
+              <button onClick={()=>setIsStepperOpen(open=>!open)} className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left">
+                <div><div className="section-kicker">Phase 0{activePhase?.id}</div><div className="mt-1 text-sm font-semibold">{activePhase?.label}</div></div>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isStepperOpen?'rotate-180':''}`}/>
+              </button>
+              {isStepperOpen&&<div className="grid gap-1 border-t border-border/40 pt-2 sm:grid-cols-3">{PHASES.map(phase=>{const PhaseIcon=phase.icon;return <button key={phase.id} onClick={()=>setState(previous=>({...previous,phase:phase.id as PhaseType}))} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs ${state.phase===phase.id?'bg-primary/12 text-primary':'text-muted-foreground hover:bg-muted/50'}`}><PhaseIcon className="h-4 w-4"/><span>{phase.shortLabel}</span>{isPhaseComplete(phase.id)&&<CheckCircle2 className="ml-auto h-3.5 w-3.5"/>}</button>})}</div>}
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div key={state.phase} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} transition={{duration:0.22}}>
+                <Card className="surface-panel relative min-h-[440px] overflow-hidden rounded-[24px] border-0 bg-transparent py-0 ring-0 lg:min-h-[540px]">
+                  <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/60 to-accent/80"/>
+                  <CardContent className="p-5 sm:p-7 lg:p-8">
+                    {activePhase?.id===1?<Phase1Topic state={state} setState={setState}/>:activePhase?.id===2?<Phase2Script state={state} setState={setState}/>:activePhase?.id===3?<Phase4Visuals state={state} setState={setState}/>:null}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+          </section>
         </div>
       </main>
       {/* Persistent Saved Indicator */}
@@ -517,7 +480,7 @@ export default function App() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-6 right-6 z-50 bg-background/80 backdrop-blur-sm border border-border px-3 py-1 rounded-full shadow-lg"
+            className="surface-panel fixed bottom-6 right-6 z-50 rounded-full px-3 py-1.5"
           >
             <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-2">
               <CheckCircle2 className="h-3 w-3 text-green-500" /> Saved

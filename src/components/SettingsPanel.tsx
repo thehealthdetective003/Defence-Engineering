@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { DEFAULT_FACILITY_HANDOFF_TEMPLATE } from '../lib/productionTemplate';
 import { HandoffValidationResult, validateVisualProductionHandoff } from '../lib/handoffValidation';
+import { MAX_SCENE_DURATION_SECONDS, MIN_SCENE_DURATION_SECONDS, parseSceneDuration } from '../lib/sceneDuration';
 
 interface SettingsPanelProps {
   state: AppState;
@@ -46,21 +47,29 @@ export function SettingsPanel({ state, setState, open, onOpenChange }: SettingsP
   const { settings, setSettings } = useSettings();
   const facilityTemplateStatus = validateVisualProductionHandoff(settings.facilityHandoffTemplate || DEFAULT_FACILITY_HANDOFF_TEMPLATE);
   const [templateImportResult, setTemplateImportResult] = useState<HandoffValidationResult | null>(null);
+  const commitSceneDuration = (rawValue: string) => {
+    const duration = parseSceneDuration(rawValue);
+    if (duration === null) {
+      toast.error(`Enter a duration between ${MIN_SCENE_DURATION_SECONDS} and ${MAX_SCENE_DURATION_SECONDS} seconds.`);
+      return;
+    }
+    setSettings(previous => ({ ...previous, sceneDurationSeconds: duration }));
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent id="toolbox-sidebar" className="bg-background border-l border-border/40 w-[420px] max-w-full p-0 flex flex-col font-mono text-foreground" showCloseButton={false}>
+      <SheetContent id="toolbox-sidebar" className="flex w-[440px] max-w-full flex-col border-l border-border/60 bg-background/95 p-0 text-foreground backdrop-blur-xl" showCloseButton={false}>
         
         {/* Header */}
-        <SheetHeader className="p-6 border-b border-border/20 bg-muted/10">
+        <SheetHeader className="border-b border-border/40 bg-muted/15 p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <SheetTitle className="text-sm font-bold tracking-[0.2em] text-foreground flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-foreground" />
-                FACILITY ENGINE TOOLBOX
+              <SheetTitle className="flex items-center gap-3 text-lg font-bold tracking-tight text-foreground">
+                <span className="brand-mark flex h-9 w-9 items-center justify-center rounded-xl"><Wrench className="h-4 w-4" /></span>
+                Facility toolbox
               </SheetTitle>
-              <SheetDescription className="text-[10px] text-muted-foreground/80 tracking-wide uppercase">
-                Facility Documentary Controls & System Utilities
+              <SheetDescription className="pl-12 text-[11px] text-muted-foreground">
+                Documentary controls and system utilities
               </SheetDescription>
             </div>
             <Button 
@@ -75,7 +84,7 @@ export function SettingsPanel({ state, setState, open, onOpenChange }: SettingsP
         </SheetHeader>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 select-none">
+        <div className="scrollbar-thin flex-1 select-none space-y-8 overflow-y-auto px-6 py-6">
 
           {/* Section: Gemini API Configuration */}
           <div className="space-y-4">
@@ -134,18 +143,31 @@ export function SettingsPanel({ state, setState, open, onOpenChange }: SettingsP
                   BASE SCENE DURATION
                 </Label>
                 <Input 
-                  type="text" 
-                  readOnly 
-                  value={`${settings.sceneDurationSeconds}.0 SECS`}
-                  className="bg-muted/20 border-border/40 font-mono text-xs text-foreground select-none cursor-default h-9"
+                  key={settings.sceneDurationSeconds}
+                  type="number"
+                  min={MIN_SCENE_DURATION_SECONDS}
+                  max={MAX_SCENE_DURATION_SECONDS}
+                  step="0.1"
+                  defaultValue={settings.sceneDurationSeconds}
+                  onBlur={event => {
+                    const previous = settings.sceneDurationSeconds;
+                    commitSceneDuration(event.currentTarget.value);
+                    if (parseSceneDuration(event.currentTarget.value) === null) event.currentTarget.value = String(previous);
+                  }}
+                  onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }}
+                  aria-describedby="scene-duration-help"
+                  className="bg-muted/20 border-border/40 font-mono text-xs text-foreground h-9"
                 />
+                <p id="scene-duration-help" className="text-[10px] text-muted-foreground normal-case">
+                  Default: 6 seconds. Enter any value from {MIN_SCENE_DURATION_SECONDS} to {MAX_SCENE_DURATION_SECONDS} seconds; decimals are supported.
+                </p>
               </div>
 
             </div>
 
             <div className="p-3.5 bg-muted/20 border border-border/40 rounded-lg">
               <p className="text-[10px] text-muted-foreground leading-relaxed uppercase">
-                Base clips follow the global {settings.sceneDurationSeconds}-second timing. Full Phase 3 generation runs automatically in fixed sequential batches of 30 scenes.
+                Base clips follow the custom {settings.sceneDurationSeconds}-second timing. Changing it re-splits imported timestamps and clears generated downstream output. Full Phase 3 generation runs in fixed sequential batches of 30 scenes.
               </p>
             </div>
           </div>
@@ -154,25 +176,9 @@ export function SettingsPanel({ state, setState, open, onOpenChange }: SettingsP
 
           <div className="space-y-4">
             <div className="border-b border-border/10 pb-2">
-              <span className="text-[10px] text-muted-foreground tracking-widest uppercase font-bold">03 / VO TIMING</span>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">SCENE DURATION</Label>
-                <Select value={String(settings.sceneDurationSeconds)} onValueChange={(value) => setSettings(prev => ({ ...prev, sceneDurationSeconds: Number(value) as 8 | 10 }))}>
-                  <SelectTrigger className="bg-muted/20 border-border/40 h-9 font-mono text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="8">8 seconds</SelectItem><SelectItem value="10">10 seconds</SelectItem></SelectContent>
-                </Select>
-              </div>
-            </div>
-            <p className="text-[10px] text-muted-foreground leading-relaxed normal-case">Import word-timestamp transcription JSON in Phase 2. Changing scene duration re-splits existing timestamps and clears generated downstream output.</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="border-b border-border/10 pb-2">
               <span className="text-[10px] text-muted-foreground tracking-widest uppercase font-bold flex items-center gap-1.5">
                 <FileUp className="w-3.5 h-3.5" />
-                04 / FACILITY HANDOFF JSON TEMPLATE
+                03 / FACILITY HANDOFF JSON TEMPLATE
               </span>
             </div>
             <div className="space-y-3 bg-muted/20 border border-border/40 p-4 rounded-lg">
@@ -262,9 +268,9 @@ export function SettingsPanel({ state, setState, open, onOpenChange }: SettingsP
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-border/20 text-center bg-muted/10 mt-auto">
-          <h4 className="text-xs font-bold text-foreground tracking-[0.25em]">FACILITY ENGINE</h4>
-          <div className="text-[9px] text-muted-foreground mt-1 uppercase tracking-widest">Version 2.2.0 // MINIMAL BUILD</div>
+        <div className="mt-auto border-t border-border/40 bg-muted/15 p-6 text-center">
+          <h4 className="text-xs font-bold tracking-[0.18em] text-foreground">DEFENCE FACILITY ENGINE</h4>
+          <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Version 2.2.0 · Studio build</div>
         </div>
       </SheetContent>
     </Sheet>

@@ -24,7 +24,7 @@ export interface Settings {
   model: string;
   defaultDuration: string;
   defaultStyle: string;
-  sceneDurationSeconds: 8 | 10;
+  sceneDurationSeconds: number;
   facilityHandoffTemplate?: Record<string, any>;
   facilityHandoffTemplateName?: string;
   facilityHandoffTemplateImportedAt?: string;
@@ -158,7 +158,7 @@ export interface VoiceoverTranscription {
   text: string;
   segments: TimedTranscriptSegment[];
   words: TimedWord[];
-  sceneDurationSeconds: 8 | 10;
+  sceneDurationSeconds: number;
   scenes: TimedScene[];
   importedAt: string;
 }

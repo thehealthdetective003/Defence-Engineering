@@ -2,13 +2,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Settings } from '../types';
 import { DEFAULT_FACILITY_HANDOFF_TEMPLATE } from '../lib/productionTemplate';
 import { FACILITY_STORAGE_KEYS } from '../lib/storageUtils';
+import { DEFAULT_SCENE_DURATION_SECONDS, normalizeSceneDuration } from '../lib/sceneDuration';
 
 const defaultSettings: Settings = {
   apiKey: '',
   model: 'gemini-3.1-pro-preview',
   defaultDuration: '3',
   defaultStyle: 'Educational',
-  sceneDurationSeconds: 10,
+  sceneDurationSeconds: DEFAULT_SCENE_DURATION_SECONDS,
   facilityHandoffTemplate: DEFAULT_FACILITY_HANDOFF_TEMPLATE,
   facilityHandoffTemplateName: 'Secret Defence Facilities Visual Production Handoff 0.9.0',
 };
@@ -29,7 +30,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem(FACILITY_STORAGE_KEYS.settings);
     if (stored) {
       try {
-        setSettings({ ...defaultSettings, ...JSON.parse(stored) });
+        const parsed = JSON.parse(stored);
+        setSettings({
+          ...defaultSettings,
+          ...parsed,
+          sceneDurationSeconds: normalizeSceneDuration(parsed.sceneDurationSeconds, defaultSettings.sceneDurationSeconds),
+        });
       } catch (e) {
         console.error('Failed to parse settings', e);
       }

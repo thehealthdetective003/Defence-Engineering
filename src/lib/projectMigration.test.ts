@@ -24,6 +24,14 @@ test('round-trips a facility-construction project without changing timeline or c
   assert.equal(result.state?.phase,3);assert.equal(result.state?.visualPrompts.length,1);assert.equal(result.state?.projectSchemaVersion,11);assert.equal(result.state?.projectFormat,'facility-construction');assert.equal(result.state?.sceneDirections[0].facility_visual_state,scene.facility_visual_state);
 });
 
+test('preserves arbitrary custom scene durations during migration',()=>{
+  const custom={...transcription,duration:6.5,sceneDurationSeconds:6.5,scenes:[{number:1,start:0,end:6.5,duration:6.5,text:'Hello',silent:false}]};
+  const parsed=JSON.parse(JSON.stringify({...initial,topic,voiceoverTranscription:custom}));
+  assert.equal(projectSceneDuration(parsed,10),6.5);
+  const result=migrateProject(parsed,initial,10);
+  assert.equal(result.state?.voiceoverTranscription?.sceneDurationSeconds,6.5);
+});
+
 test('narrowly migrates the schema-10 intermediate facility project',()=>{
   const raw:any={...initial,projectFormat:'standard-lifecycle',projectSchemaVersion:10,phase:2,topic,voiceoverTranscription:transcription,plannedScenes:[plan],sceneDirections:[scene]};
   const result=migrateProject(raw,initial,8);

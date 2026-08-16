@@ -32,47 +32,47 @@
 
 @layer base {
   :root {
-    --background: 40 20% 96%;
-    --foreground: 240 15% 12%;
-    --card: 40 15% 98%;
-    --card-foreground: 240 15% 12%;
-    --popover: 40 15% 98%;
-    --popover-foreground: 240 15% 12%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 40 12% 90%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 40 12% 90%;
-    --muted-foreground: 240 5% 38%;
-    --accent: 40 12% 90%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 198 33% 96%;
+    --foreground: 215 38% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 38% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 38% 14%;
+    --primary: 175 66% 28%;
+    --primary-foreground: 168 45% 97%;
+    --secondary: 197 24% 90%;
+    --secondary-foreground: 215 34% 18%;
+    --muted: 198 24% 91%;
+    --muted-foreground: 214 15% 42%;
+    --accent: 34 84% 54%;
+    --accent-foreground: 224 42% 11%;
+    --destructive: 2 72% 48%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 8% 80%;
-    --input: 240 8% 80%;
-    --ring: 240 5.9% 10%;
+    --border: 200 22% 82%;
+    --input: 200 22% 82%;
+    --ring: 175 66% 34%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 218 38% 7%;
+    --foreground: 190 22% 92%;
+    --card: 217 31% 10%;
+    --card-foreground: 190 22% 92%;
+    --popover: 217 32% 9%;
+    --popover-foreground: 190 22% 92%;
+    --primary: 174 72% 45%;
+    --primary-foreground: 218 45% 7%;
+    --secondary: 214 24% 17%;
+    --secondary-foreground: 190 22% 92%;
+    --muted: 215 24% 16%;
+    --muted-foreground: 202 13% 63%;
+    --accent: 35 88% 58%;
+    --accent-foreground: 220 45% 8%;
+    --destructive: 3 68% 47%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --border: 211 22% 22%;
+    --input: 211 22% 22%;
+    --ring: 174 72% 45%;
   }
 }
 
@@ -82,5 +82,147 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    min-width: 320px;
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+  }
+}
+
+@layer components {
+  .facility-shell {
+    isolation: isolate;
+    background:
+      radial-gradient(circle at 8% 4%, hsl(var(--primary) / 0.12), transparent 28rem),
+      radial-gradient(circle at 92% 12%, hsl(var(--accent) / 0.08), transparent 24rem),
+      hsl(var(--background));
+  }
+
+  .facility-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.38;
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.16) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.16) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black, transparent 76%);
+  }
+
+  .app-header {
+    background: hsl(var(--background) / 0.82);
+    backdrop-filter: blur(18px) saturate(130%);
+    box-shadow: 0 1px 0 hsl(var(--border) / 0.65), 0 12px 40px hsl(220 50% 3% / 0.12);
+  }
+
+  .brand-mark {
+    background: linear-gradient(145deg, hsl(var(--primary)), hsl(183 72% 34%));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 10px 28px hsl(var(--primary) / 0.24), inset 0 1px 0 hsl(0 0% 100% / 0.24);
+  }
+
+  .surface-panel {
+    background: linear-gradient(145deg, hsl(var(--card) / 0.96), hsl(var(--card) / 0.82));
+    border: 1px solid hsl(var(--border) / 0.72);
+    box-shadow: 0 24px 70px hsl(220 50% 3% / 0.16), inset 0 1px 0 hsl(0 0% 100% / 0.035);
+  }
+
+  .inset-panel {
+    background: hsl(var(--muted) / 0.32);
+    border: 1px solid hsl(var(--border) / 0.62);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.035);
+  }
+
+  .section-kicker {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+  }
+
+  .display-title {
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+
+  .phase-nav-item {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+    transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+    outline: none;
+  }
+
+  .phase-nav-item:hover {
+    transform: translateX(2px);
+    background: hsl(var(--muted) / 0.42);
+  }
+
+  .phase-nav-item[data-active="true"] {
+    background: linear-gradient(110deg, hsl(var(--primary) / 0.14), hsl(var(--primary) / 0.035));
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .phase-nav-item[data-active="true"]::before {
+    content: "";
+    position: absolute;
+    inset-block: 12px;
+    left: 0;
+    width: 3px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 16px hsl(var(--primary) / 0.6);
+  }
+
+  .phase-nav-item:focus-visible {
+    border-color: hsl(var(--primary) / 0.48);
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+  }
+
+  .metric-card {
+    background: linear-gradient(135deg, hsl(var(--muted) / 0.4), hsl(var(--muted) / 0.16));
+    border: 1px solid hsl(var(--border) / 0.55);
+    border-radius: 0.9rem;
+  }
+
+  .code-surface {
+    background: hsl(220 38% 6% / 0.92) !important;
+    border-color: hsl(var(--primary) / 0.22) !important;
+    color: hsl(177 48% 84%) !important;
+    box-shadow: inset 0 2px 14px hsl(220 55% 2% / 0.55);
+  }
+
+  .dark .code-surface {
+    background: hsl(220 38% 5% / 0.95) !important;
+  }
+
+  .status-pulse {
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12), 0 0 18px hsl(var(--primary) / 0.5);
+  }
+
+  .workspace-back {
+    width: fit-content;
+    color: hsl(var(--muted-foreground));
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.45) transparent;
   }
 }

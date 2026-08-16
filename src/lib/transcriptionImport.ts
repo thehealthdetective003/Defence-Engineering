@@ -1,9 +1,11 @@
 import { TimedTranscriptSegment, TimedWord, VoiceoverTranscription } from '../types';
 import { buildTimedScenes } from './timedTranscript';
+import { requireSceneDuration } from './sceneDuration';
 
 const finite = (value: unknown) => typeof value === 'number' && Number.isFinite(value);
 
-export function importTranscriptionJson(raw: any, fileName: string, sceneDuration: 8 | 10): VoiceoverTranscription {
+export function importTranscriptionJson(raw: any, fileName: string, sceneDuration: number): VoiceoverTranscription {
+  sceneDuration = requireSceneDuration(sceneDuration);
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Transcription JSON must be an object.');
   const sourceWords = Array.isArray(raw.words) ? raw.words : Array.isArray(raw.result?.words) ? raw.result.words : [];
   const words: TimedWord[] = sourceWords.map((word: any, index: number) => {

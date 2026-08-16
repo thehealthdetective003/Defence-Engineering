@@ -1,6 +1,6 @@
 {
-  "name": "Assembly Line",
-  "description": "A 4-phase video production pipeline for a YouTube channel about how military and defense products are manufactured inside factories.",
+  "name": "Defence Facility Engine",
+  "description": "A facility-native documentary workspace for validating defence-construction research, directing timestamped scenes, and compiling final video prompts.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
