@@ -6,13 +6,16 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingsProvider } from './components/SettingsContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="dark" attribute="class">
       <SettingsProvider>
         <TooltipProvider>
-          <App />
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
           <Toaster />
         </TooltipProvider>
       </SettingsProvider>

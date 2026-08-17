@@ -54,14 +54,14 @@ export async function runSequentialBatches(
   initial: T2VPrompt[],
   generate: (batch: SceneDirection[]) => Promise<T2VPrompt[]>,
   onStart: (batch: SceneDirection[], accumulated: T2VPrompt[]) => void,
-  onCommit: (batch: SceneDirection[], accumulated: T2VPrompt[]) => void,
+  onCommit: (batch: SceneDirection[], accumulated: T2VPrompt[]) => void | Promise<void>,
 ): Promise<T2VPrompt[]> {
   let accumulated = [...initial];
   for (const batch of batches) {
     onStart(batch, accumulated);
     try {
       accumulated = mergePromptBatch(accumulated, await generate(batch));
-      onCommit(batch, accumulated);
+      await onCommit(batch, accumulated);
     } catch (error) {
       throw new PromptBatchError(error instanceof Error ? error.message : 'Batch generation failed.', batch, accumulated);
     }

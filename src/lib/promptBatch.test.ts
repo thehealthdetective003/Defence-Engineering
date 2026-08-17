@@ -22,7 +22,7 @@ test('finds missing directions and merges completed batches in scene order', () 
 test('runs batches sequentially and preserves committed prompts when a later batch fails', async () => {
   const batches=createDirectionBatches(directions(61)); const events:string[]=[];
   const prompt=(number:number)=>({number,video_prompt:'p',action_description:'a',voiceover:'',stock_keywords:''} as T2VPrompt);
-  await assert.rejects(()=>runSequentialBatches(batches,[],async batch=>{ events.push(`generate:${batch[0].number}`); if(batch[0].number===31) throw new Error('failed'); return batch.map(scene=>prompt(scene.number)); },()=>{},(batch,items)=>events.push(`commit:${batch[0].number}:${items.length}`)),(error:any)=>{
+  await assert.rejects(()=>runSequentialBatches(batches,[],async batch=>{ events.push(`generate:${batch[0].number}`); if(batch[0].number===31) throw new Error('failed'); return batch.map(scene=>prompt(scene.number)); },()=>{},(batch,items)=>{ events.push(`commit:${batch[0].number}:${items.length}`); }),(error:any)=>{
     assert.ok(error instanceof PromptBatchError); assert.equal(error.accumulated.length,30); return true;
   });
   assert.deepEqual(events,['generate:1','commit:1:30','generate:31']);

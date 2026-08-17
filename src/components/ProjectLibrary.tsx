@@ -31,8 +31,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   getAllProjects, 
   deleteProject, 
-  loadProject, 
-  calculateStorageUsage 
+  calculateStorageUsage,
+  type StorageUsage,
 } from '../lib/storageUtils';
 import { AppState, SavedProject, PhaseType } from '../types';
 import { toast } from 'sonner';
@@ -55,17 +55,23 @@ export function ProjectLibrary({
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [search, setSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [storage, setStorage] = useState({ usedKb: 0, totalKb: 5120, percent: 0 });
+  const [storage, setStorage] = useState<StorageUsage>({ usedBytes: 0, totalBytes: 0, usedKb: 0, totalKb: 0, percent: 0, source: 'project-data' });
 
   useEffect(() => {
     if (open) {
-      refreshList();
+      void refreshList();
     }
   }, [open]);
 
-  const refreshList = () => {
-    setProjects(getAllProjects());
-    setStorage(calculateStorageUsage());
+  const refreshList = async () => {
+    try {
+      const [projectList, usage] = await Promise.all([getAllProjects(), calculateStorageUsage()]);
+      setProjects(projectList);
+      setStorage(usage);
+    } catch (error) {
+      console.error('Failed to refresh project library', error);
+      toast.error('Project library could not be read.');
+    }
   };
 
   const filteredProjects = useMemo(() => {
@@ -75,12 +81,17 @@ export function ProjectLibrary({
     );
   }, [projects, search]);
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    deleteProject(id);
-    refreshList();
-    setDeleteConfirm(null);
-    toast.success("Project deleted");
+    try {
+      await deleteProject(id);
+      await refreshList();
+      setDeleteConfirm(null);
+      toast.success("Project deleted");
+    } catch (error) {
+      console.error('Failed to delete project', error);
+      toast.error('Project could not be deleted.');
+    }
   };
 
   const getPhaseInfo = (phase: PhaseType, demoOnly: boolean) => {
@@ -170,6 +181,7 @@ export function ProjectLibrary({
                           <Badge variant="secondary" className="text-[10px] py-0 px-1.5 font-mono opacity-80">
                             {project.sceneCount === 0 && !project.demoOnly ? '—' : project.demoOnly ? '10 demo' : `${project.sceneCount} scenes`}
                           </Badge>
+                          {project.sizeBytes ? <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono opacity-60">{sizeToString(project.sizeBytes)}</Badge> : null}
                         </div>
                       </div>
 
@@ -246,7 +258,7 @@ export function ProjectLibrary({
                <Database className="h-3 w-3" />
                <span>STORAGE USAGE</span>
              </div>
-             <span>{storage.usedKb} KB / ~5 MB</span>
+              <span>{sizeToString(storage.usedBytes)}{storage.totalBytes ? ` / ${sizeToString(storage.totalBytes)}` : ''}</span>
            </div>
            <Progress 
              id="storage-usage-bar"
@@ -254,6 +266,7 @@ export function ProjectLibrary({
              className="h-1 bg-muted-foreground/10" 
              indicatorClassName={storage.percent > 90 ? 'bg-red-500' : 'bg-primary'} 
            />
+           <p className="mt-2 text-[10px] leading-4 text-muted-foreground/60">Browser-reported origin storage · projects use IndexedDB</p>
            {storage.percent > 90 && (
              <div className="mt-2 flex items-center gap-2 text-[10px] text-red-500 animate-pulse">
                <AlertCircle className="h-3 w-3" />

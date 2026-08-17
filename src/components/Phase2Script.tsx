@@ -13,7 +13,7 @@ import { calculateStageSummary, mergeDirectionMetadata, validateSceneDirections 
 import { formatTimestamp } from '../lib/timedTranscript';
 import { buildDocumentaryScenePlan, buildFacilityBatchContext, summarizeScenePlan } from '../lib/scenePlanner';
 
-interface Props { state: AppState; setState: Dispatch<SetStateAction<AppState>>; }
+interface Props { state: AppState; setState: Dispatch<SetStateAction<AppState>>; checkpointState: (state: AppState) => Promise<AppState>; }
 const directionSchema={type:Type.ARRAY,items:{type:Type.OBJECT,required:['number','subject','facility_visual_state','primary_action','supporting_motion','environment_description','camera','lighting_and_material','continuity_from_previous','transition_to_next','required_visible_features','forbidden_elements','temporal_action'],properties:{number:{type:Type.INTEGER},subject:{type:Type.STRING},facility_visual_state:{type:Type.STRING},primary_action:{type:Type.STRING},supporting_motion:{type:Type.STRING},environment_description:{type:Type.STRING},camera:{type:Type.OBJECT,required:['shot_scale','lens','angle','movement','movement_speed'],properties:{shot_scale:{type:Type.STRING},lens:{type:Type.STRING},angle:{type:Type.STRING},movement:{type:Type.STRING},movement_speed:{type:Type.STRING}}},lighting_and_material:{type:Type.STRING},continuity_from_previous:{type:Type.STRING},transition_to_next:{type:Type.STRING},required_visible_features:{type:Type.ARRAY,items:{type:Type.STRING}},forbidden_elements:{type:Type.ARRAY,items:{type:Type.STRING}},temporal_action:{type:Type.OBJECT,required:['opening_state','primary_motion','physical_interaction','mid_shot_progression','ending_state'],properties:{opening_state:{type:Type.STRING},primary_motion:{type:Type.STRING},physical_interaction:{type:Type.STRING},mid_shot_progression:{type:Type.STRING},ending_state:{type:Type.STRING}}}}}};
 
 export const FACILITY_DIRECTOR_SYSTEM_INSTRUCTION = `You direct concise documentary scenes about the construction, operation, history, and remains of defence facilities.
@@ -32,7 +32,7 @@ Layout truth is equally strict. EXACT_LAYOUT_VERIFIED can show only cited spatia
 
 Never invent proprietary internals, underground layouts, access routes, security systems or procedures, guard posts, guard routines or patterns, surveillance positions or blind spots, vulnerabilities, hidden entrances, checkpoints, classified capabilities, weapon deployment, combat, explosions, unit markings, precise coordinates, exact events, or identifiable current locations. Never convert contextual bunker imagery into a depiction of the exact named facility. Aircraft, vehicles, personnel, and machinery may appear only as contextual scale or historically supported construction/logistics evidence; never turn them into the primary subject, an aviation performance sequence, or a cinematic showdown. Avoid generic industrial assembly lines, facility beauty shots, aerobatics, cockpit spectacle, or deployed-platform footage. Use only the facility construction evidence, historical context, modules, stages, environments, references, and constraints supplied in the batch.`;
 
-export function Phase2Script({state,setState}:Props){
+export function Phase2Script({state,setState,checkpointState}:Props){
  const {settings}=useSettings(); const [isLoading,setIsLoading]=useState(false); const [batchStatus,setBatchStatus]=useState('');
  const [editor,setEditor]=useState(()=>state.sceneDirections.length?JSON.stringify(state.sceneDirections,null,2):'[]');
  const scenes=state.voiceoverTranscription?.scenes||[]; const transcript=state.voiceoverTranscription;
@@ -41,32 +41,51 @@ export function Phase2Script({state,setState}:Props){
  const stageSummary=useMemo(()=>parsed&&!errors.length?calculateStageSummary(parsed):[],[parsed,errors]);
  const planSummary=useMemo(()=>summarizeScenePlan(state.plannedScenes),[state.plannedScenes]);
  const canResume=state.plannedScenes.length===scenes.length&&state.sceneDirections.length>0&&state.sceneDirections.length<scenes.length;
+ const directionSession=state.generationSession?.kind==='scene-directions'?state.generationSession:null;
  const generate=async(resume=false)=>{
   if(!state.topic||!transcript?.scenes.length)return toast.error('Import timestamped VO JSON before generating directions.');
   const apiKey=settings.apiKey||process.env.GEMINI_API_KEY;if(!apiKey)return toast.error('Add a Gemini API key in Settings.');
+  const plan=resume?state.plannedScenes:buildDocumentaryScenePlan(state.topic,transcript.scenes);
+  const generated:any[]=resume?[...state.sceneDirections]:[];
+  const now=new Date().toISOString();
+  const previous=resume&&state.generationSession?.kind==='scene-directions'?state.generationSession:null;
+  const sessionId=previous?.id||crypto.randomUUID();
+  const startedAt=previous?.startedAt||now;
+  const totalBatches=Math.ceil(scenes.length/30);
+  let workingState:AppState=resume?state:{...state,plannedScenes:plan,sceneDirections:[],visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle',phase:2};
   setIsLoading(true);
   try{
-   const ai=new GoogleGenAI({apiKey}); const plan=resume?state.plannedScenes:buildDocumentaryScenePlan(state.topic,transcript.scenes); const generated:any[]=resume?[...state.sceneDirections]:[];
-   if(!resume)setState(p=>({...p,plannedScenes:plan,sceneDirections:[],visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle',phase:2}));
+   const ai=new GoogleGenAI({apiKey});
    for(let offset=generated.length;offset<scenes.length;offset+=30){
-    const timedBatch=scenes.slice(offset,offset+30),planBatch=plan.slice(offset,offset+30);setBatchStatus(`batch ${Math.floor(offset/30)+1}/${Math.ceil(scenes.length/30)} · scenes ${timedBatch[0].number}–${timedBatch.at(-1)?.number}`);
+    const timedBatch=scenes.slice(offset,offset+30),planBatch=plan.slice(offset,offset+30);setBatchStatus(`batch ${Math.floor(offset/30)+1}/${totalBatches} · scenes ${timedBatch[0].number}–${timedBatch.at(-1)?.number}`);
     const facility_context=buildFacilityBatchContext(state.topic,planBatch);
     const contents=JSON.stringify({facility_context,prior_scene:generated.at(-1)||null,planned_scenes:planBatch.map((p,i)=>({...p,...timedBatch[i],voiceover:timedBatch[i].text}))});
     const response=await ai.models.generateContent({model:settings.model,contents,config:{responseMimeType:'application/json',responseSchema:directionSchema,systemInstruction:FACILITY_DIRECTOR_SYSTEM_INSTRUCTION}});
     const batch=JSON.parse(response.text||'[]'),nums=batch.map((x:any)=>Number(x.number)),expected=timedBatch.map(x=>x.number);
     if(batch.length!==expected.length||new Set(nums).size!==nums.length||expected.some(n=>!nums.includes(n))||nums.some((n:number)=>!expected.includes(n)))throw new Error(`Direction batch ${Math.floor(offset/30)+1} returned missing, duplicate, or unexpected scene numbers.`);
     generated.push(...batch);const partialTimed=scenes.slice(0,generated.length),partialPlan=plan.slice(0,generated.length),partial=mergeDirectionMetadata(generated,partialTimed,partialPlan);
-    setEditor(JSON.stringify(partial,null,2));setState(p=>({...p,plannedScenes:plan,sceneDirections:partial}));
+    const updatedAt=new Date().toISOString();
+    workingState=await checkpointState({...workingState,plannedScenes:plan,sceneDirections:partial,generationSession:{id:sessionId,kind:'scene-directions',status:'running',completedItems:partial.length,totalItems:scenes.length,currentBatch:Math.ceil(partial.length/30),totalBatches,nextSceneNumber:partial.length<scenes.length?partial.length+1:null,startedAt,updatedAt}});
+    setEditor(JSON.stringify(partial,null,2));
    }
    const merged=mergeDirectionMetadata(generated,scenes,plan),validation=validateSceneDirections(merged,scenes,plan);if(validation.length)throw new Error(validation.join(' '));
-   setEditor(JSON.stringify(merged,null,2));setState(p=>({...p,plannedScenes:plan,sceneDirections:merged,visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle',phase:2}));toast.success(`Planned and directed ${merged.length} timestamp-locked scenes.`);
-  }catch(error){toast.error(error instanceof Error?error.message:'Direction generation failed.')}finally{setIsLoading(false);setBatchStatus('')}
+   const completedAt=new Date().toISOString();
+   workingState=await checkpointState({...workingState,plannedScenes:plan,sceneDirections:merged,visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle',phase:2,generationSession:{id:sessionId,kind:'scene-directions',status:'complete',completedItems:merged.length,totalItems:scenes.length,currentBatch:totalBatches,totalBatches,nextSceneNumber:null,startedAt,updatedAt:completedAt}});
+   setEditor(JSON.stringify(merged,null,2));toast.success(`Planned, directed, and checkpointed ${merged.length} timestamp-locked scenes.`);
+  }catch(error){
+   const message=error instanceof Error?error.message:'Direction generation failed.';
+   const failedAt=new Date().toISOString();
+   const partial=generated.length?mergeDirectionMetadata(generated,scenes.slice(0,generated.length),plan.slice(0,generated.length)):workingState.sceneDirections;
+   try{await checkpointState({...workingState,plannedScenes:plan,sceneDirections:partial,generationSession:{id:sessionId,kind:'scene-directions',status:'failed',completedItems:partial.length,totalItems:scenes.length,currentBatch:Math.max(1,Math.ceil((partial.length+1)/30)),totalBatches,nextSceneNumber:partial.length<scenes.length?partial.length+1:null,startedAt,updatedAt:failedAt,error:message}});}catch{ /* Recovery snapshot remains available in memory. */ }
+   toast.error(`${message} Completed batches remain checkpointed.`);
+  }finally{setIsLoading(false);setBatchStatus('')}
  };
  const approve=()=>{if(!parsed||errors.length)return toast.error(errors[0]);setState(p=>({...p,sceneDirections:parsed,visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle',phase:3}));toast.success('Scene directions approved.')};
  return <div className="space-y-6">
   <Button variant="link" className="workspace-back p-0" onClick={()=>setState(s=>({...s,phase:1}))}><ArrowLeft className="mr-1 h-3 w-3"/>Back to facility brief</Button>
   <TranscriptionImportPanel state={state} setState={setState}/>
   {transcript&&<div className="grid grid-cols-2 gap-2 md:grid-cols-5">{[['Runtime',formatTimestamp(transcript.duration)],['Scenes',scenes.length],['Window',`${transcript.sceneDurationSeconds}s`],['Final scene',`${scenes.at(-1)?.duration.toFixed(3)}s`],['Silent windows',scenes.filter(s=>s.silent).length]].map(([k,v])=><div key={k} className="metric-card p-3.5"><div className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{k}</div><div className="mt-1.5 text-base font-bold">{v}</div></div>)}</div>}
+  {directionSession&&directionSession.status!=='complete'&&<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/8 p-4 text-xs"><div><div className="font-bold text-amber-600 dark:text-amber-300">DIRECTION SESSION {directionSession.status.toUpperCase()}</div><div className="mt-1 text-muted-foreground">Checkpointed {directionSession.completedItems} of {directionSession.totalItems} scenes · next scene {directionSession.nextSceneNumber||'—'}</div></div><Badge variant="outline">BATCH {directionSession.currentBatch} / {directionSession.totalBatches}</Badge></div>}
   <Button onClick={()=>generate(canResume)} disabled={isLoading||!transcript} className="h-13 w-full font-bold tracking-wide shadow-[0_14px_32px_hsl(var(--primary)/0.18)]">{isLoading?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<PenTool className="mr-2 h-4 w-4"/>}{isLoading?`PLANNING & GENERATING · ${batchStatus}`:canResume?`RESUME DIRECTION GENERATION FROM SCENE ${state.sceneDirections.length+1}`:'GENERATE DETAILED SCENE DIRECTIONS'}</Button>
   {!!state.plannedScenes.length&&<div className="inset-panel space-y-3 rounded-2xl p-4"><div className="section-kicker text-muted-foreground">Automatic facility documentary plan</div><div className="flex flex-wrap gap-2"><Badge variant="default">Reference media: {planSummary.referenceScenes}</Badge>{planSummary.graphicScenes>0&&<Badge variant="default">Technical graphics: {planSummary.graphicScenes}</Badge>}{planSummary.states.map(([k,v])=><Badge key={k} variant="outline">State {k}: {v}</Badge>)}</div><div className="flex flex-wrap gap-2">{planSummary.families.map(([k,v])=><Badge key={k} variant="secondary">{k.replaceAll('_',' ')}: {v}</Badge>)}</div>{planSummary.graphicScenes>0&&<div className="flex flex-wrap gap-2">{planSummary.graphicSubtypes.map(([k,v])=><Badge key={k} variant="outline">{k.replaceAll('_',' ')}: {v}</Badge>)}</div>}<div className="flex flex-wrap gap-2">{planSummary.treatments.map(([k,v])=><Badge key={k} variant="outline">{k.replace('_T2V','').replaceAll('_',' ')}: {v}</Badge>)}</div></div>}
   <div className="space-y-3"><div className="flex items-center justify-between"><div><div className="section-kicker">Direction ledger</div><p className="mt-1 text-xs text-muted-foreground">Strict timestamp-locked scene direction JSON</p></div><Button size="sm" variant="outline" onClick={async()=>toast[await copyToClipboard(editor)?'success':'error']('JSON copied')}><Copy className="mr-2 h-3 w-3"/>COPY</Button></div><Textarea value={editor} onChange={e=>setEditor(e.target.value)} className="code-surface scrollbar-thin min-h-[520px] rounded-xl p-4 font-mono text-xs" spellCheck={false}/>{errors.length?<div className="rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-400">{errors.slice(0,5).map((e,i)=><div key={i}>• {e}</div>)}</div>:<div className="flex items-center gap-2 text-xs text-primary"><CheckCircle2 className="h-4 w-4"/>Schema valid; timing, VO, and documentary plan are unchanged.</div>}{stageSummary.length>0&&<div className="flex flex-wrap gap-2">{stageSummary.map(item=><Badge key={item.stage_id} variant="secondary">{item.stage_id}: {item.scenes}</Badge>)}</div>}</div>

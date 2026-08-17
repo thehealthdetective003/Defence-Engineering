@@ -44,6 +44,17 @@ test('repairs immutable facility truth metadata from a valid stored plan',()=>{
   assert.equal(result.state?.sceneDirections[0]?.environment_ref,'ENV_CONSTRUCTION_ZONE');assert.equal(result.state?.sceneDirections[0]?.stage_id,'STG_02');assert.equal(result.state?.sceneDirections[0]?.state,'B');assert.equal(result.state?.sceneDirections[0]?.facility_claim_status,'GENERIC_NON_IDENTIFYING_VISUAL');
 });
 
+test('preserves a valid direction-batch prefix and its resumable session',()=>{
+  const secondPlan:PlannedScene={...plan,number:2,beat_id:'LINING'};
+  const extendedTranscription={...transcription,duration:16,text:'Hello Again',scenes:[transcription.scenes[0],{number:2,start:8,end:16,duration:8,text:'Again',silent:false}]};
+  const session={id:'direction-run',kind:'scene-directions' as const,status:'running' as const,completedItems:1,totalItems:2,currentBatch:1,totalBatches:1,nextSceneNumber:2,startedAt:'now',updatedAt:'now'};
+  const result=migrateProject({...initial,phase:2,topic,voiceoverTranscription:extendedTranscription,plannedScenes:[plan,secondPlan],sceneDirections:[scene],generationSession:session},initial,8);
+  assert.equal(result.state?.sceneDirections.length,1);
+  assert.equal(result.state?.generationSession?.nextSceneNumber,2);
+  assert.equal(result.state?.generationSession?.status,'paused');
+  assert.equal(result.state?.phase,2);
+});
+
 test('preserves the complete facility handoff through project migration',()=>{
   const result=migrateProject(JSON.parse(JSON.stringify({...initial,topic,phase:1})),initial,10);
   assert.deepEqual(result.state?.topic?._production_handoff,createFacilityPipelineHandoff());

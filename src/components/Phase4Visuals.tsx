@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { AlertCircle, ArrowLeft, Copy, Download, Loader2, Play, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { createDirectionBatches, missingDirections, PromptBatchError, runSequentialBatches, T2V_BATCH_SIZE, validateBatchNumbers, validateBatchResponse } from '../lib/promptBatch';
 import { compileOmniPrompt, normalizeOmniSections, recompileOmniPrompts } from '../lib/omniPromptCompiler';
 
-interface Props { state: AppState; setState: Dispatch<SetStateAction<AppState>>; }
+interface Props { state: AppState; setState: Dispatch<SetStateAction<AppState>>; checkpointState: (state: AppState) => Promise<AppState>; }
 const responseSchema = { type: Type.ARRAY, items: { type: Type.OBJECT, required: ['number','action_description','video_prompt','stock_keywords'], properties: {
   number: { type: Type.INTEGER }, action_description: { type: Type.STRING }, video_prompt: { type: Type.STRING }, stock_keywords: { type: Type.STRING },
   continuity_notes: { type: Type.STRING }, quality_flags: { type: Type.ARRAY, items: { type: Type.STRING } },
@@ -29,11 +29,13 @@ const omniResponseSchema = { type:Type.ARRAY, items:{type:Type.OBJECT,required:[
 
 const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 const download = (name: string, text: string, type: string) => { const url=URL.createObjectURL(new Blob([text],{type})); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); };
+const PROMPTS_PER_PAGE = 30;
 
-export function Phase4Visuals({ state, setState }: Props) {
+export function Phase4Visuals({ state, setState, checkpointState }: Props) {
   const { settings } = useSettings();
   const [loading, setLoading] = useState<'demo'|'full'|null>(null);
   const [batchProgress, setBatchProgress] = useState<{ batch:number; total:number; start:number; end:number; completed:number; error?:string } | null>(null);
+  const [page, setPage] = useState(1);
   const directions = state.sceneDirections;
 
   const requestPrompts = async (ai: GoogleGenAI, selected: typeof directions): Promise<T2VPrompt[]> => {
@@ -67,33 +69,43 @@ export function Phase4Visuals({ state, setState }: Props) {
       if (demo) {
         const selected = directions.slice(0, Math.min(3,directions.length));
         const prompts = await requestPrompts(ai, selected);
-        setState(p=>({...p,demoState:'generated',demoScenes:prompts,demoSceneNumbers:prompts.map(x=>x.number)}));
-        toast.success('Demo T2V prompts generated.');
+        await checkpointState({...state,demoState:'generated',demoScenes:prompts,demoSceneNumbers:prompts.map(x=>x.number)});
+        toast.success('Demo T2V prompts generated and checkpointed.');
       } else {
         const existing = resume ? state.visualPrompts : [];
-        if (!resume) setState(previous=>({...previous,visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle'}));
         const remaining = missingDirections(directions, existing);
         const batches = createDirectionBatches(remaining);
         const totalProjectBatches = Math.ceil(directions.length / T2V_BATCH_SIZE);
+        const now = new Date().toISOString();
+        const previous = resume && state.generationSession?.kind === 'visual-prompts' ? state.generationSession : null;
+        const sessionId = previous?.id || crypto.randomUUID();
+        const startedAt = previous?.startedAt || now;
+        let workingState:AppState = resume ? state : {...state,visualPrompts:[],demoScenes:[],demoSceneNumbers:[],demoState:'idle'};
         let accumulated:T2VPrompt[];
         try {
           accumulated = await runSequentialBatches(batches,existing,batch=>requestPrompts(ai,batch),(batch,items)=>{
             const batchNumber=Math.floor((batch[0].number-1)/T2V_BATCH_SIZE)+1;
             setBatchProgress({batch:batchNumber,total:totalProjectBatches,start:batch[0].number,end:batch.at(-1)!.number,completed:items.length});
-          },(batch,items)=>{
+          },async (batch,items)=>{
             const batchNumber=Math.floor((batch[0].number-1)/T2V_BATCH_SIZE)+1;
-            setState(previous=>({...previous,visualPrompts:items,demoState:'approved',demoScenes:[],demoSceneNumbers:[]}));
+            const updatedAt=new Date().toISOString();
+            workingState=await checkpointState({...workingState,visualPrompts:items,demoState:'approved',demoScenes:[],demoSceneNumbers:[],generationSession:{id:sessionId,kind:'visual-prompts',status:'running',completedItems:items.length,totalItems:directions.length,currentBatch:batchNumber,totalBatches:totalProjectBatches,nextSceneNumber:items.length<directions.length?missingDirections(directions,items)[0]?.number||null:null,startedAt,updatedAt}});
             setBatchProgress({batch:batchNumber,total:totalProjectBatches,start:batch[0].number,end:batch.at(-1)!.number,completed:items.length});
+            setPage(Math.max(1,Math.ceil(items.length/30)));
           });
         } catch(error) {
           if(error instanceof PromptBatchError){
             const batchNumber=Math.floor((error.batch[0].number-1)/T2V_BATCH_SIZE)+1;
             setBatchProgress({batch:batchNumber,total:totalProjectBatches,start:error.batch[0].number,end:error.batch.at(-1)!.number,completed:error.accumulated.length,error:error.message});
-            toast.error(`Batch ${batchNumber} paused: ${error.message}`); return;
+            const failedAt=new Date().toISOString();
+            try{await checkpointState({...workingState,visualPrompts:error.accumulated,demoState:'approved',demoScenes:[],demoSceneNumbers:[],generationSession:{id:sessionId,kind:'visual-prompts',status:'failed',completedItems:error.accumulated.length,totalItems:directions.length,currentBatch:batchNumber,totalBatches:totalProjectBatches,nextSceneNumber:missingDirections(directions,error.accumulated)[0]?.number||null,startedAt,updatedAt:failedAt,error:error.message}});}catch{ /* The recovery snapshot already contains the accumulated prompts. */ }
+            toast.error(`Batch ${batchNumber} paused: ${error.message}. Completed prompts remain recoverable.`); return;
           }
           throw error;
         }
-        toast.success(`All ${accumulated.length} T2V prompts generated in ${totalProjectBatches} batch${totalProjectBatches===1?'':'es'}.`);
+        const completedAt=new Date().toISOString();
+        await checkpointState({...workingState,visualPrompts:accumulated,demoState:'approved',demoScenes:[],demoSceneNumbers:[],generationSession:{id:sessionId,kind:'visual-prompts',status:'complete',completedItems:accumulated.length,totalItems:directions.length,currentBatch:totalProjectBatches,totalBatches:totalProjectBatches,nextSceneNumber:null,startedAt,updatedAt:completedAt}});
+        toast.success(`All ${accumulated.length} T2V prompts generated and checkpointed in ${totalProjectBatches} batch${totalProjectBatches===1?'':'es'}.`);
       }
     } catch(error) { toast.error(error instanceof Error?error.message:'T2V generation failed.'); }
     finally { setLoading(null); }
@@ -103,6 +115,10 @@ export function Phase4Visuals({ state, setState }: Props) {
   const isPartial = completedNumbers.size > 0 && !isComplete;
   const canResume = !isComplete && (isPartial || Boolean(batchProgress?.error));
   const shown = state.visualPrompts.length ? state.visualPrompts : state.demoScenes;
+  const promptSession = state.generationSession?.kind === 'visual-prompts' ? state.generationSession : null;
+  const totalPages = Math.max(1, Math.ceil(shown.length / PROMPTS_PER_PAGE));
+  useEffect(() => setPage(current => Math.min(Math.max(1, current), totalPages)), [totalPages]);
+  const visiblePrompts = shown.slice((page - 1) * PROMPTS_PER_PAGE, page * PROMPTS_PER_PAGE);
   const update = (number:number,field:'video_prompt'|'action_description'|'stock_keywords',value:string) => setState(p=>({ ...p, visualPrompts:p.visualPrompts.map(x=>x.number===number?{...x,[field]:value}:x), demoScenes:p.demoScenes.map(x=>x.number===number?{...x,[field]:value}:x) }));
   const profileLabel = state.t2vPromptProfile === 'omni-flash' ? 'Gemini Omni Flash' : 'Veo / Google Flow';
   const allText = [...shown].sort((a,b)=>a.number-b.number).map(prompt=>`${prompt.number}: ${prompt.video_prompt}`).join('\n\n');
@@ -129,6 +145,7 @@ export function Phase4Visuals({ state, setState }: Props) {
       </Select>
       <p className="max-w-3xl text-[11px] leading-5 text-muted-foreground">Changing profile clears only generated Phase 3 output. Prompts use the exact custom scene duration. If the target video model supports only preset lengths, generate with its closest supported length and trim or extend in the editor.</p>
     </div>
+    {promptSession&&promptSession.status!=='complete'&&<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/8 p-4 text-xs"><div><div className="font-bold text-amber-600 dark:text-amber-300">PROMPT SESSION {promptSession.status.toUpperCase()}</div><div className="mt-1 text-muted-foreground">Checkpointed {promptSession.completedItems} of {promptSession.totalItems} prompts · next scene {promptSession.nextSceneNumber||'—'}</div></div><Badge variant="outline">BATCH {promptSession.currentBatch} / {promptSession.totalBatches}</Badge></div>}
     {!state.visualPrompts.length && !batchProgress?.error && <div className="grid gap-3 md:grid-cols-2"><Button variant="outline" className="h-13 border-primary/25 bg-primary/5 text-primary hover:bg-primary/10" disabled={!!loading} onClick={()=>generate(true)}>{loading==='demo'?<Loader2 className="mr-2 animate-spin"/>:<Play className="mr-2 h-4 w-4"/>}GENERATE 3-SCENE DEMO</Button><Button className="h-13 font-bold shadow-[0_14px_32px_hsl(var(--primary)/0.18)]" disabled={!!loading} onClick={()=>generate(false,false)}>{loading==='full'&&<Loader2 className="mr-2 animate-spin"/>}GENERATE ALL · BATCHES OF 30</Button></div>}
     {state.demoScenes.length>0&&!state.visualPrompts.length&&!batchProgress?.error&&<Button className="h-12 w-full font-bold" disabled={!!loading} onClick={()=>generate(false,false)}>DEMO APPROVED — GENERATE FULL SET IN BATCHES</Button>}
     {canResume && !loading && <div className="grid gap-3 md:grid-cols-2"><Button className="h-12 font-bold" onClick={()=>generate(false,true)}><RefreshCw className="mr-2 h-4 w-4"/>RESUME FROM SCENE {missingDirections(directions,state.visualPrompts)[0]?.number}</Button><Button variant="outline" className="h-12" onClick={()=>generate(false,false)}>RESTART FULL GENERATION</Button></div>}
@@ -140,7 +157,8 @@ export function Phase4Visuals({ state, setState }: Props) {
     </div>}
     {isComplete && !batchProgress && <Badge className="bg-green-600/20 text-green-500 border-green-500/30">GENERATION COMPLETE · {directions.length} SCENES</Badge>}
     {shown.length>0 && <div className="flex flex-wrap gap-2 rounded-2xl border border-border/45 bg-muted/20 p-3"><Button variant="outline" onClick={async()=>toast[await copyToClipboard(allText)?'success':'error'](`Copied ${shown.length} prompt${shown.length===1?'':'s'} in scene order.`)}><Copy className="mr-2 h-4 w-4"/>COPY ALL PROMPTS</Button>{state.t2vPromptProfile==='omni-flash'&&<Button variant="outline" onClick={recompileAll}><RefreshCw className="mr-2 h-4 w-4"/>RECOMPILE ALL PROMPTS</Button>}{isComplete&&<><Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4"/>CSV</Button><Button variant="outline" onClick={exportVo}><Download className="mr-2 h-4 w-4"/>TIMESTAMPED VO</Button></>}</div>}
-    <div className="space-y-4">{shown.map(prompt=>{const d=directions[prompt.number-1];return <div key={prompt.number} className="surface-panel space-y-3 rounded-2xl p-4 sm:p-5">
+    {shown.length>PROMPTS_PER_PAGE&&<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/45 bg-card/40 p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Showing {(page-1)*PROMPTS_PER_PAGE+1}–{Math.min(page*PROMPTS_PER_PAGE,shown.length)} of {shown.length} prompts</div><div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={page===1} onClick={()=>setPage(current=>Math.max(1,current-1))}>PREVIOUS</Button><Badge variant="secondary">PAGE {page} / {totalPages}</Badge><Button size="sm" variant="outline" disabled={page===totalPages} onClick={()=>setPage(current=>Math.min(totalPages,current+1))}>NEXT</Button></div></div>}
+    <div className="space-y-4">{visiblePrompts.map(prompt=>{const d=directions[prompt.number-1];return <div key={prompt.number} className="surface-panel space-y-3 rounded-2xl p-4 sm:p-5">
       <div className="flex flex-wrap gap-2"><Badge>SCENE {prompt.number}</Badge><Badge variant="outline">{profileLabel}</Badge><Badge variant="outline">{formatTimestamp(d?.start||0)}–{formatTimestamp(d?.end||0)}</Badge><Badge variant="outline">{prompt.stage_id}</Badge><Badge variant="secondary">STATE {prompt.state}</Badge></div>
       <label className="text-[10px] text-muted-foreground">ACTION</label><Textarea value={prompt.action_description} onChange={e=>update(prompt.number,'action_description',e.target.value)} className="min-h-[65px]"/>
       <label className="section-kicker">T2V prompt</label><Textarea value={prompt.video_prompt} onChange={e=>update(prompt.number,'video_prompt',e.target.value)} className="code-surface min-h-[180px] rounded-xl p-4 text-xs"/>

@@ -294,6 +294,19 @@ export interface T2VPrompt {
   stock_keywords: string;
   omniSections?: OmniPromptSections;
 }
+export interface GenerationSession {
+  id: string;
+  kind: 'scene-directions' | 'visual-prompts';
+  status: 'running' | 'paused' | 'failed' | 'complete';
+  completedItems: number;
+  totalItems: number;
+  currentBatch: number;
+  totalBatches: number;
+  nextSceneNumber: number | null;
+  startedAt: string;
+  updatedAt: string;
+  error?: string;
+}
 export interface AppState {
   projectSchemaVersion: number;
   id?: string;
@@ -307,9 +320,10 @@ export interface AppState {
   voiceoverTranscription: VoiceoverTranscription | null;
   t2vPromptProfile: T2VPromptProfile;
   visualPrompts: T2VPrompt[];
-  demoState: 'idle' | 'generating' | 'review' | 'approved';
+  demoState: 'idle' | 'generating' | 'generated' | 'review' | 'approved';
   demoScenes: T2VPrompt[];
   demoSceneNumbers: number[];
+  generationSession?: GenerationSession;
 }
 export interface SavedProject {
   id: string;
@@ -321,6 +335,7 @@ export interface SavedProject {
   demoOnly: boolean;
   savedAt: string;
   createdAt: string;
+  sizeBytes?: number;
 }
 export interface FullProjectData extends AppState {
   id: string;

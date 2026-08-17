@@ -1,29 +1,31 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { AppState } from '../types';
-import { calculateStorageUsage, FACILITY_STORAGE_KEYS, getAllProjects, loadProject, saveProject } from './storageUtils';
+import type { FullProjectData } from '../types';
+import { FACILITY_STORAGE_KEYS, isQuotaExceededError, projectByteSize, ProjectStorageError, summarizeProject } from './storageUtils';
 
-class MemoryStorage {
-  private values=new Map<string,string>();
-  get length(){return this.values.size;}
-  key(index:number){return [...this.values.keys()][index]??null;}
-  getItem(key:string){return this.values.get(key)??null;}
-  setItem(key:string,value:string){this.values.set(key,String(value));}
-  removeItem(key:string){this.values.delete(key);}
-  clear(){this.values.clear();}
-}
-const state:AppState={projectSchemaVersion:11,projectName:'Fixture Facility',projectFormat:'facility-construction',phase:1,topic:null,plannedScenes:[],sceneDirections:[],masterVoiceoverScript:'',voiceoverTranscription:null,t2vPromptProfile:'omni-flash',visualPrompts:[],demoState:'idle',demoScenes:[],demoSceneNumbers:[]};
+const project:FullProjectData={
+  projectSchemaVersion:11,id:'fixture-project',projectName:'Fixture Facility',projectFormat:'facility-construction',phase:3,
+  topic:null,plannedScenes:[],sceneDirections:[],masterVoiceoverScript:'',voiceoverTranscription:null,t2vPromptProfile:'omni-flash',
+  visualPrompts:[{number:1,action_description:'action',video_prompt:'prompt',voiceover:'voiceover',stock_keywords:'keywords'}],
+  demoState:'idle',demoScenes:[],demoSceneNumbers:[],createdAt:'2026-01-01T00:00:00.000Z',savedAt:'2026-01-02T00:00:00.000Z',
+};
 
-test('facility storage namespace never uses assembly_line keys',()=>{
+test('legacy facility keys remain stable for one-time migration',()=>{
   assert.deepEqual(Object.values(FACILITY_STORAGE_KEYS),['facility_engine_save','facility_engine_settings','facility_engine_projects','facility_engine_project_']);
   assert.ok(Object.values(FACILITY_STORAGE_KEYS).every(key=>!key.startsWith('assembly_line_')));
 });
 
-test('project save/load/index uses only facility keys and leaves unrelated storage untouched',()=>{
-  const memory=new MemoryStorage();Object.assign(globalThis,{localStorage:memory});
-  memory.setItem('assembly_line_projects','original-app-data');memory.setItem('unrelated_key','keep-me');
-  const id=saveProject(state);
-  assert.ok(memory.getItem(`${FACILITY_STORAGE_KEYS.projectPrefix}${id}`));assert.equal(loadProject(id)?.projectFormat,'facility-construction');assert.equal(getAllProjects().length,1);
-  assert.equal(memory.getItem('assembly_line_projects'),'original-app-data');assert.equal(memory.getItem('unrelated_key'),'keep-me');
-  assert.ok(calculateStorageUsage().usedKb>0);
+test('project summaries include accurate metadata and serialized size',()=>{
+  const summary=summarizeProject(project);
+  assert.equal(summary.id,'fixture-project');
+  assert.equal(summary.sceneCount,1);
+  assert.equal(summary.sizeBytes,projectByteSize(project));
+  assert.ok((summary.sizeBytes||0)>0);
+});
+
+test('quota failures are normalized across browser error shapes',()=>{
+  assert.equal(isQuotaExceededError(new ProjectStorageError('full','quota')),true);
+  const browserStyle=new Error('Storage quota exceeded');browserStyle.name='QuotaExceededError';
+  assert.equal(isQuotaExceededError(browserStyle),true);
+  assert.equal(isQuotaExceededError(new Error('network failed')),false);
 });

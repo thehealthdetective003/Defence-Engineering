@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'motion/react';
 import { Moon, Sun, CheckCircle2, FilePlus, FolderOpen, AlertCircle, FileUp, FileDown, Wrench, Shield, MapPinned, Workflow, WandSparkles, ChevronDown, DatabaseZap, CircleGauge } from 'lucide-react';
@@ -21,10 +21,11 @@ import { Phase4Visuals } from './components/Phase4Visuals';
 import { SettingsPanel } from './components/SettingsPanel';
 import { useSettings } from './components/SettingsContext';
 import { ProjectLibrary } from './components/ProjectLibrary';
-import { FACILITY_STORAGE_KEYS, saveProject, loadProject } from './lib/storageUtils';
+import { clearActiveProject, initializeProjectStorage, isQuotaExceededError, loadActiveProject, loadProject, requestPersistentStorage, saveProject } from './lib/storageUtils';
 import { toast } from 'sonner';
 import { resplitTranscription, resetDownstreamForTiming } from './lib/timedTranscript';
 import { migrateProject, projectSceneDuration } from './lib/projectMigration';
+import { downloadRecoverySnapshot, updateRecoverySnapshot } from './lib/recoveryVault';
 const PHASES = [
   { id: 1, label: 'FACILITY BRIEF', shortLabel: 'Brief', description: 'Load and verify the authoritative facility handoff', icon: MapPinned },
   { id: 2, label: 'SCENE DIRECTION', shortLabel: 'Direction', description: 'Align timestamped narration with construction visuals', icon: Workflow },
@@ -48,6 +49,9 @@ export const INITIAL_STATE: AppState = {
   demoSceneNumbers: [],
 };
 
+const createInitialState = (): AppState => ({ ...INITIAL_STATE, id: crypto.randomUUID() });
+type SaveStatus = 'loading' | 'saving' | 'saved' | 'error';
+
 export default function App() {
   const { theme, setTheme } = useTheme();
   const { settings, setSettings, isLoaded } = useSettings();
@@ -55,21 +59,84 @@ export default function App() {
   const [isStepperOpen, setIsStepperOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: 'new' | 'load', id?: string } | null>(null);
-  const [lastSavedState, setLastSavedState] = useState<string>(JSON.stringify(INITIAL_STATE));
   const [showSavedFlash, setShowSavedFlash] = useState(false);
-  const [quotaError, setQuotaError] = useState(false);
-  
-  const [state, setState] = useState<AppState>(INITIAL_STATE);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('loading');
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const [profileConflict, setProfileConflict] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [state, setInternalState] = useState<AppState>(createInitialState);
+  const revisionRef = useRef(0);
+  const lastPersistedRevisionRef = useRef(0);
+  const stateRef = useRef(state);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  stateRef.current = state;
+  updateRecoverySnapshot(state);
+
+  const setState = useCallback<Dispatch<SetStateAction<AppState>>>((action) => {
+    revisionRef.current += 1;
+    setSaveStatus('saving');
+    setInternalState(action);
+  }, []);
   const activePhase = PHASES.find((p) => p.id === state.phase);
-  const isDirty = JSON.stringify(state) !== lastSavedState;
+  const isDirty = saveStatus === 'saving' || saveStatus === 'error';
+
+  const persistSnapshot = useCallback(async (snapshot: AppState, revision: number): Promise<AppState> => {
+    setSaveStatus('saving');
+    const operation = saveQueueRef.current.then(async () => {
+      const saved = await saveProject(snapshot);
+      const persistedState = saved as AppState;
+      lastPersistedRevisionRef.current = Math.max(lastPersistedRevisionRef.current, revision);
+      if (revision === revisionRef.current) {
+        stateRef.current = persistedState;
+        setInternalState(persistedState);
+        setSaveStatus('saved');
+        setStorageError(null);
+        setShowSavedFlash(true);
+        window.setTimeout(() => setShowSavedFlash(false), 1500);
+      }
+      return persistedState;
+    });
+    saveQueueRef.current = operation.then(() => undefined, () => undefined);
+    try {
+      return await operation;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'The project could not be saved.';
+      setSaveStatus('error');
+      setStorageError(message);
+      console.error('Project checkpoint failed', error);
+      throw error;
+    }
+  }, []);
+
+  const checkpointState = useCallback(async (nextState: AppState): Promise<AppState> => {
+    const revision = revisionRef.current + 1;
+    revisionRef.current = revision;
+    stateRef.current = nextState;
+    updateRecoverySnapshot(nextState);
+    setInternalState(nextState);
+    return persistSnapshot(nextState, revision);
+  }, [persistSnapshot]);
+
+  const handleSave = useCallback(async (): Promise<boolean> => {
+    try {
+      await persistSnapshot(stateRef.current, revisionRef.current);
+      return true;
+    } catch (error) {
+      if (isQuotaExceededError(error)) toast.error('Browser storage is full. Download the recovery JSON before clearing space.');
+      else toast.error('Project could not be saved. Download a recovery copy before reloading.');
+      return false;
+    }
+  }, [persistSnapshot]);
+
   useEffect(() => {
+    if (!isHydrated) return;
     setState(prev => {
       const transcript = prev.voiceoverTranscription;
       if (!transcript || transcript.sceneDurationSeconds === settings.sceneDurationSeconds) return prev;
       const reset = resetDownstreamForTiming(prev);
       return { ...reset, voiceoverTranscription: resplitTranscription(transcript, settings.sceneDurationSeconds) } as AppState;
     });
-  }, [settings.sceneDurationSeconds, state.voiceoverTranscription?.sceneDurationSeconds]);
+  }, [isHydrated, settings.sceneDurationSeconds, state.voiceoverTranscription?.sceneDurationSeconds, setState]);
   // Smooth scroll to top when phase changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -80,98 +147,125 @@ export default function App() {
       setState(s => ({ ...s, projectName: s.topic?.topic?.facility || 'Untitled Facility Documentary' }));
     }
   }, [state.topic]);
-  // Restore state from localStorage on mount (Browser Auto-Save Feature)
-  const [isHydrated, setIsHydrated] = useState(false);
   useEffect(() => {
-    const saved = localStorage.getItem(FACILITY_STORAGE_KEYS.autosave);
-    if (saved) {
+    if (!isLoaded) return;
+    let cancelled = false;
+    const restoreWorkspace = async () => {
       try {
-        const raw = JSON.parse(saved);
-        const duration = projectSceneDuration(raw, settings.sceneDurationSeconds);
-        const migration = migrateProject(raw, INITIAL_STATE, duration);
-        if (migration.state) {
+        const migrationResult = await initializeProjectStorage();
+        void requestPersistentStorage();
+        const saved = await loadActiveProject();
+        if (cancelled) return;
+        if (saved) {
+          const duration = projectSceneDuration(saved, settings.sceneDurationSeconds);
+          const migration = migrateProject(saved, INITIAL_STATE, duration);
+          if (!migration.state) throw new Error(migration.error || 'The saved project is not supported.');
+          const restored = { ...migration.state, id: saved.id };
           setSettings(previous => ({ ...previous, sceneDurationSeconds: duration }));
-          setState(migration.state);
-          setLastSavedState(JSON.stringify(migration.state));
-        } else {
-          toast.error(migration.error || 'The auto-saved project is not a supported facility-construction project.');
+          stateRef.current = restored;
+          setInternalState(restored);
+          updateRecoverySnapshot(restored);
+          await saveProject(restored);
+          if (migration.message) toast.info(migration.message);
         }
-      } catch (e) {
-        console.error('Failed to parse facility engine autosave', e);
+        if (migrationResult.migratedProjects > 0) toast.success(`Migrated ${migrationResult.migratedProjects} project${migrationResult.migratedProjects === 1 ? '' : 's'} to resilient storage.`);
+        if (!cancelled) setSaveStatus('saved');
+      } catch (error) {
+        console.error('Failed to restore project workspace', error);
+        if (!cancelled) {
+          setStorageError(error instanceof Error ? error.message : 'Project storage is unavailable.');
+          setSaveStatus('error');
+        }
+      } finally {
+        if (!cancelled) setIsHydrated(true);
       }
-    }
-    setIsHydrated(true);
-  }, [settings.sceneDurationSeconds]);
-  // Save state continuously to localStorage on state changes
-  useEffect(() => {
-    if (!isHydrated) return;
-    localStorage.setItem(FACILITY_STORAGE_KEYS.autosave, JSON.stringify(state));
-  }, [state, isHydrated]);
-  const handleSave = useCallback(() => {
-    try {
-      const savedId = saveProject(state);
-      if (state.id !== savedId) {
-        setState(s => ({ ...s, id: savedId }));
-      }
-      setLastSavedState(JSON.stringify({ ...state, id: savedId }));
-      setShowSavedFlash(true);
-      setQuotaError(false);
-      setTimeout(() => setShowSavedFlash(false), 1500);
-    } catch (e) {
-      if (e instanceof Error && e.name === 'QuotaExceededError') {
-        setQuotaError(true);
-      }
-      console.error('Save failed', e);
-    }
-  }, [state]);
-  // Autosave when state changes significantly
+    };
+    void restoreWorkspace();
+    return () => { cancelled = true; };
+  }, [isLoaded, settings.sceneDurationSeconds, setSettings]);
+
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
-    if (!isDirty) return;
-    
+    if (!isHydrated || revisionRef.current <= lastPersistedRevisionRef.current) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    
-    // Low frequency autosave (2 seconds debounce)
+    const snapshot = state;
+    const revision = revisionRef.current;
     saveTimeoutRef.current = setTimeout(() => {
-      handleSave();
-    }, 2000);
-    
+      if (revision <= lastPersistedRevisionRef.current) return;
+      void persistSnapshot(snapshot, revision).catch(() => undefined);
+    }, 1500);
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [state, isDirty, handleSave]);
+  }, [state, isHydrated, persistSnapshot]);
+
+  useEffect(() => {
+    if (!state.id || typeof BroadcastChannel === 'undefined') return;
+    const tabId = crypto.randomUUID();
+    const channel = new BroadcastChannel('defence-facility-engine-project-lock');
+    let conflictTimer: number | undefined;
+    setProfileConflict(false);
+    const markConflict = () => {
+      setProfileConflict(true);
+      if (conflictTimer) window.clearTimeout(conflictTimer);
+      conflictTimer = window.setTimeout(() => setProfileConflict(false), 5000);
+    };
+    channel.onmessage = event => {
+      const message = event.data as { type?: string; projectId?: string; tabId?: string };
+      if (message.projectId !== state.id || message.tabId === tabId) return;
+      if (message.type === 'closed') {
+        setProfileConflict(false);
+        return;
+      }
+      markConflict();
+      if (message.type === 'opened') channel.postMessage({ type: 'present', projectId: state.id, tabId });
+    };
+    const announceClosed = () => channel.postMessage({ type: 'closed', projectId: state.id, tabId });
+    window.addEventListener('pagehide', announceClosed);
+    channel.postMessage({ type: 'opened', projectId: state.id, tabId });
+    const heartbeat = window.setInterval(() => channel.postMessage({ type: 'present', projectId: state.id, tabId }), 2000);
+    return () => {
+      window.removeEventListener('pagehide', announceClosed);
+      window.clearInterval(heartbeat);
+      if (conflictTimer) window.clearTimeout(conflictTimer);
+      announceClosed();
+      channel.close();
+    };
+  }, [state.id]);
+
+  const resetToNewProject = async () => {
+    try { await clearActiveProject(); } catch (error) { console.error('Failed to clear active project pointer', error); }
+    const resetState = createInitialState();
+    revisionRef.current += 1;
+    stateRef.current = resetState;
+    setInternalState(resetState);
+    setSaveStatus('saving');
+    setStorageError(null);
+  };
+
   const handleNewProject = () => {
     if (isDirty && state.topic) {
       setPendingAction({ type: 'new' });
     } else {
-      const resetState: AppState = {
-        ...INITIAL_STATE,
-      };
-      setState(resetState);
-      setLastSavedState(JSON.stringify(resetState));
+      void resetToNewProject();
     }
   };
-  const confirmNewProject = (saveBefore: boolean) => {
-    if (saveBefore) {
-      handleSave();
-    }
-    const resetState: AppState = {
-      ...INITIAL_STATE,
-    };
-    setState(resetState);
-    setLastSavedState(JSON.stringify(resetState));
+  const confirmNewProject = async (saveBefore: boolean) => {
+    if (saveBefore && !(await handleSave())) return;
+    await resetToNewProject();
     setPendingAction(null);
   };
   const handleLoadProject = (id: string) => {
     if (isDirty && state.topic) {
       setPendingAction({ type: 'load', id });
     } else {
-      executeLoad(id);
+      void executeLoad(id);
     }
   };
-  const executeLoad = (id: string) => {
-    const loaded = loadProject(id);
-    if (loaded) {
+  const executeLoad = async (id: string) => {
+    try {
+      const loaded = await loadProject(id);
+      if (!loaded) throw new Error('Project record was not found.');
       const duration = projectSceneDuration(loaded, settings.sceneDurationSeconds);
       const migration = migrateProject(loaded, INITIAL_STATE, duration);
       const merged = migration.state;
@@ -180,14 +274,18 @@ export default function App() {
         setPendingAction(null);
         return;
       }
-      setState(merged);
+      const restored = { ...merged, id: loaded.id };
+      revisionRef.current += 1;
+      stateRef.current = restored;
+      setInternalState(restored);
       setSettings(previous => ({ ...previous, sceneDurationSeconds: duration }));
-      setLastSavedState(JSON.stringify(merged));
-      toast.success(`Loaded: ${merged.topic?.topic?.title || merged.projectName}`);
+      await persistSnapshot(restored, revisionRef.current);
+      toast.success(`Loaded: ${restored.topic?.topic?.title || restored.projectName}`);
       if (migration.message) toast.info(migration.message);
       setIsLibraryOpen(false);
-    } else {
-      toast.error("Failed to load project");
+    } catch (error) {
+      console.error('Failed to load project', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to load project');
     }
     setPendingAction(null);
   };
@@ -202,7 +300,7 @@ export default function App() {
   const completedPhaseCount = PHASES.filter(phase => isPhaseComplete(phase.id)).length;
   const workflowProgress = Math.round((completedPhaseCount / PHASES.length) * 100);
   const ActivePhaseIcon = activePhase?.icon || MapPinned;
-  if (!isLoaded) return null;
+  if (!isLoaded || !isHydrated) return null;
   return (
     <div className="facility-shell min-h-screen bg-background text-foreground font-sans flex flex-col relative">
       <SettingsPanel state={state} setState={setState} open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
@@ -228,11 +326,10 @@ export default function App() {
             <Button
               variant="default"
               className="bg-primary text-black font-bold"
-              onClick={() => {
-                if (pendingAction?.type === 'new') confirmNewProject(true);
+              onClick={async () => {
+                if (pendingAction?.type === 'new') await confirmNewProject(true);
                 else if (pendingAction?.id) {
-                   handleSave();
-                   executeLoad(pendingAction.id);
+                   if (await handleSave()) await executeLoad(pendingAction.id);
                 }
               }}
             >
@@ -241,8 +338,8 @@ export default function App() {
             <Button 
               variant="outline"
               onClick={() => {
-                if (pendingAction?.type === 'new') confirmNewProject(false);
-                else if (pendingAction?.id) executeLoad(pendingAction.id);
+                if (pendingAction?.type === 'new') void confirmNewProject(false);
+                else if (pendingAction?.id) void executeLoad(pendingAction.id);
               }}
             >
               DISCARD & CONTINUE
@@ -251,21 +348,33 @@ export default function App() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Quota Error Banner */}
-      {quotaError && (
-        <div className="bg-red-600 text-white p-3 text-sm font-bold flex items-center justify-center gap-4 z-50">
+      {storageError && (
+        <div className="z-50 flex flex-wrap items-center justify-center gap-3 bg-red-600 p-3 text-sm font-bold text-white">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
-            <span>STORAGE FULL. DELETE OLD PROJECTS TO FREE SPACE.</span>
+            <span>SAVE FAILED · YOUR CURRENT WORK IS STILL AVAILABLE IN MEMORY.</span>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white/10 border-white/20 hover:bg-white/20 text-white h-7 px-3 text-xs"
+            onClick={() => downloadRecoverySnapshot(state)}
+          >
+            <FileDown className="mr-1.5 h-3.5 w-3.5" /> DOWNLOAD RECOVERY
+          </Button>
           <Button
             variant="outline"
             size="sm"
             className="bg-white/10 border-white/20 hover:bg-white/20 text-white h-7 px-3 text-xs"
             onClick={() => setIsLibraryOpen(true)}
           >
-            OPEN PROJECT LIBRARY →
+            OPEN LIBRARY →
           </Button>
+        </div>
+      )}
+      {profileConflict && (
+        <div className="z-40 flex items-center justify-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs font-semibold text-amber-600 dark:text-amber-300">
+          <AlertCircle className="h-4 w-4" /> This project is open in another tab. Close one tab to prevent competing edits.
         </div>
       )}
       <header className="app-header sticky top-0 z-20 border-b border-border/40">
@@ -280,10 +389,10 @@ export default function App() {
                 <Badge variant="outline" className="hidden border-primary/25 bg-primary/8 font-mono text-[9px] text-primary xl:inline-flex">STUDIO</Badge>
               </div>
               <div className="mt-0.5 hidden items-center gap-2 font-mono text-[10px] text-muted-foreground sm:flex">
-                <span className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-amber-400' : 'bg-primary'} ${!isDirty ? 'status-pulse' : ''}`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${saveStatus === 'error' ? 'bg-red-500' : isDirty ? 'bg-amber-400' : 'bg-primary'} ${saveStatus === 'saved' ? 'status-pulse' : ''}`} />
                 <span className="truncate max-w-[150px] sm:max-w-[270px]">{state.topic?.topic?.facility || state.projectName}</span>
                 <span className="hidden text-muted-foreground/50 sm:inline">·</span>
-                <span className="hidden uppercase tracking-wider sm:inline">{isDirty ? 'Saving changes' : 'Synced locally'}</span>
+                <span className="hidden uppercase tracking-wider sm:inline">{saveStatus === 'error' ? 'Save failed · recovery available' : saveStatus === 'saving' ? 'Saving checkpoint' : 'Saved to resilient storage'}</span>
               </div>
             </div>
           </div>
@@ -327,7 +436,7 @@ export default function App() {
                   const file = e.target.files?.[0];
                   if (!file) return;
                   const reader = new FileReader();
-                  reader.onload = (event) => {
+                  reader.onload = async (event) => {
                     try {
                       const importedData = JSON.parse(event.target?.result as string);
                       
@@ -341,10 +450,9 @@ export default function App() {
                             toast.error(migration.error || 'Unsupported project format. Only facility-construction projects can be loaded.');
                             return;
                           }
-                          setState(merged);
                           setSettings(previous => ({ ...previous, sceneDurationSeconds: duration }));
-                          setLastSavedState(JSON.stringify(merged));
-                          toast.success("Project file loaded and synchronized.");
+                          await checkpointState({ ...merged, id: merged.id || crypto.randomUUID() });
+                          toast.success("Project file loaded and saved to resilient storage.");
                           if (migration.message) toast.info(migration.message);
                         } else {
                           toast.error("Invalid project file format");
@@ -465,7 +573,7 @@ export default function App() {
                 <Card className="surface-panel relative min-h-[440px] overflow-hidden rounded-[24px] border-0 bg-transparent py-0 ring-0 lg:min-h-[540px]">
                   <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/60 to-accent/80"/>
                   <CardContent className="p-5 sm:p-7 lg:p-8">
-                    {activePhase?.id===1?<Phase1Topic state={state} setState={setState}/>:activePhase?.id===2?<Phase2Script state={state} setState={setState}/>:activePhase?.id===3?<Phase4Visuals state={state} setState={setState}/>:null}
+                    {activePhase?.id===1?<Phase1Topic state={state} setState={setState}/>:activePhase?.id===2?<Phase2Script state={state} setState={setState} checkpointState={checkpointState}/>:activePhase?.id===3?<Phase4Visuals state={state} setState={setState} checkpointState={checkpointState}/>:null}
                   </CardContent>
                 </Card>
               </motion.div>

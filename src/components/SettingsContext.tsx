@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Settings } from '../types';
 import { DEFAULT_FACILITY_HANDOFF_TEMPLATE } from '../lib/productionTemplate';
-import { FACILITY_STORAGE_KEYS } from '../lib/storageUtils';
+import { loadSettings, saveSettings } from '../lib/storageUtils';
 import { DEFAULT_SCENE_DURATION_SECONDS, normalizeSceneDuration } from '../lib/sceneDuration';
+import { toast } from 'sonner';
 
 const defaultSettings: Settings = {
   apiKey: '',
@@ -27,25 +28,37 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(FACILITY_STORAGE_KEYS.settings);
-    if (stored) {
+    let cancelled = false;
+    const restoreSettings = async () => {
       try {
-        const parsed = JSON.parse(stored);
+        const parsed = await loadSettings();
+        if (cancelled) return;
+        if (!parsed) {
+          setIsLoaded(true);
+          return;
+        }
         setSettings({
           ...defaultSettings,
           ...parsed,
           sceneDurationSeconds: normalizeSceneDuration(parsed.sceneDurationSeconds, defaultSettings.sceneDurationSeconds),
         });
       } catch (e) {
-        console.error('Failed to parse settings', e);
+        console.error('Failed to restore settings', e);
+        toast.error('Settings could not be restored. Safe defaults are active.');
+      } finally {
+        if (!cancelled) setIsLoaded(true);
       }
-    }
-    setIsLoaded(true);
+    };
+    void restoreSettings();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem(FACILITY_STORAGE_KEYS.settings, JSON.stringify(settings));
+      void saveSettings(settings).catch(error => {
+        console.error('Failed to save settings', error);
+        toast.error('Settings could not be saved to browser storage.');
+      });
     }
   }, [settings, isLoaded]);
 

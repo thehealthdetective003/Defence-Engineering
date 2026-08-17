@@ -54,18 +54,20 @@ export function migrateProject(raw: any, initial: AppState, sceneDuration: numbe
     if(!plan)return item;
     return {...item,chapter_id:plan.chapter_id,beat_id:plan.beat_id,visual_family:plan.visual_family,story_function:plan.story_function,visual_treatment:plan.visual_treatment,facility_visibility:plan.facility_visibility,energy_level:plan.energy_level,facility_claim_status:plan.facility_claim_status,layout_claim_status:plan.layout_claim_status,generation_permission:plan.generation_permission,preferred_media_routes:plan.preferred_media_routes,reference_asset_ids:plan.reference_asset_ids,exact_site_claim_allowed:plan.exact_site_claim_allowed,exact_layout_claim_allowed:plan.exact_layout_claim_allowed,facility_module_ids:plan.facility_module_ids,truth_constraints:plan.truth_constraints,continuity_requirements:plan.continuity_requirements,graphic_spec:plan.graphic_spec,stage_id:plan.stage_id,environment_ref:plan.environment_ref,state:plan.state,required_visible_features:ensureRequiredVisibleFeatures(item,plan),forbidden_elements:[...new Set([...(plan.forbidden_elements||[]),...(Array.isArray(item.forbidden_elements)?item.forbidden_elements:[])])]};
   }) : rawDirections;
-  const directionsValid = planValid && !!transcription && validateSceneDirections(repairedDirections, transcription.scenes, rawPlan).length === 0;
+  const directionsPrefixValid = planValid && !!transcription && repairedDirections.length <= transcription.scenes.length
+    && validateSceneDirections(repairedDirections, transcription.scenes.slice(0,repairedDirections.length), rawPlan.slice(0,repairedDirections.length)).length === 0;
+  const directionsComplete = directionsPrefixValid && repairedDirections.length === transcription.scenes.length;
   const imageMode = raw.phase4Mode === 'image-animation';
   const profileSupported = raw.projectSchemaVersion >= 4 && (raw.t2vPromptProfile === 'omni-flash' || raw.t2vPromptProfile === 'veo-flow');
   const rawPrompts = Array.isArray(raw.visualPrompts) ? raw.visualPrompts : [];
   const promptNumbers = new Set<number>();
-  const promptsCompatible = directionsValid && rawPrompts.every((item:any) => {
+  const promptsCompatible = directionsComplete && rawPrompts.every((item:any) => {
     const number = Number(item?.number);
     const valid = Number.isInteger(number) && number >= 1 && number <= transcription.scenes.length && !promptNumbers.has(number) && typeof item?.video_prompt === 'string' && item.video_prompt.trim();
     if (valid) promptNumbers.add(number);
     return Boolean(valid);
   });
-  const compatiblePrompts: T2VPrompt[] = directionsValid && !imageMode && profileSupported && promptsCompatible
+  const compatiblePrompts: T2VPrompt[] = directionsComplete && !imageMode && profileSupported && promptsCompatible
     ? rawPrompts.map((item: any) => {
         const number=Number(item.number);
         const base:T2VPrompt={
@@ -78,8 +80,11 @@ export function migrateProject(raw: any, initial: AppState, sceneDuration: numbe
       return base;
     })
     : [];
+  const generationSession = raw.generationSession && typeof raw.generationSession === 'object'
+    ? { ...raw.generationSession, status: raw.generationSession.status === 'running' ? 'paused' : raw.generationSession.status }
+    : undefined;
   const preserveOutput = compatiblePrompts.length > 0;
-  const phase = directionsValid ? (Number(raw.phase) >= 3 ? 3 : Math.max(1, Number(raw.phase) || 1)) : (raw.topic ? 2 : 1);
+  const phase = directionsComplete ? (Number(raw.phase) >= 3 ? 3 : Math.max(1, Number(raw.phase) || 1)) : (raw.topic ? 2 : 1);
   const state: AppState = {
     ...initial,
     id: raw.id,
@@ -90,13 +95,14 @@ export function migrateProject(raw: any, initial: AppState, sceneDuration: numbe
     masterVoiceoverScript: transcription?.text || '',
     voiceoverTranscription: transcription,
     plannedScenes: planValid ? rawPlan : [],
-    sceneDirections: directionsValid ? repairedDirections : [],
+    sceneDirections: directionsPrefixValid ? repairedDirections : [],
     visualPrompts: preserveOutput ? compatiblePrompts.sort((a,b)=>a.number-b.number) : [],
     demoState: 'idle', demoScenes: [], demoSceneNumbers: [],
     t2vPromptProfile: profileSupported ? raw.t2vPromptProfile : 'omni-flash',
+    generationSession,
     projectSchemaVersion: 11,
   };
-  const reset = timingChanged || imageMode || !profileSupported || !directionsValid || !preserveOutput;
+  const reset = timingChanged || imageMode || !profileSupported || !directionsComplete || !preserveOutput;
   const planningUpgrade = intermediateFacilityProject||raw.projectSchemaVersion<11;
   return { state, message: planningUpgrade
     ? 'Intermediate facility project migrated to the facility-construction format and isolated Facility Engine storage model.'
